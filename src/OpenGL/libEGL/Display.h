@@ -22,6 +22,7 @@
 #include "Config.h"
 #include "Common/MutexLock.hpp"
 #include "Sync.hpp"
+#include "common/NameSpace.hpp"
 
 #include <set>
 
@@ -29,6 +30,7 @@ namespace egl
 {
 	class Surface;
 	class Context;
+	class Image;
 
 	const EGLDisplay PRIMARY_DISPLAY = (EGLDisplay)1;
 	const EGLDisplay HEADLESS_DISPLAY = (EGLDisplay)0xFACE1E55;
@@ -65,7 +67,10 @@ namespace egl
 		EGLint getMaxSwapInterval() const;
 
 		void *getNativeDisplay() const;
-		const char *getExtensionString() const;
+
+		EGLImageKHR createSharedImage(Image *image);
+		bool destroySharedImage(EGLImageKHR);
+		virtual Image *getSharedImage(EGLImageKHR name);
 
 	private:
 		explicit Display(void *nativeDisplay);
@@ -89,6 +94,8 @@ namespace egl
 		typedef std::set<FenceSync*> SyncSet;
 		sw::BackoffLock mSyncSetMutex;
 		SyncSet mSyncSet;
+
+		gl::NameSpace<Image> mSharedImageNameSpace;
 	};
 }
 
