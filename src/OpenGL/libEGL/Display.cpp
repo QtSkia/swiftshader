@@ -216,7 +216,7 @@ void Display::terminate()
 
 	while(!mSharedImageNameSpace.empty())
 	{
-		destroySharedImage((EGLImageKHR)mSharedImageNameSpace.firstName());
+		destroySharedImage(reinterpret_cast<EGLImageKHR>(mSharedImageNameSpace.firstName()));
 	}
 }
 
@@ -607,7 +607,7 @@ void *Display::getNativeDisplay() const
 
 EGLImageKHR Display::createSharedImage(Image *image)
 {
-	return (EGLImageKHR)mSharedImageNameSpace.allocate(image);
+	return reinterpret_cast<EGLImageKHR>(mSharedImageNameSpace.allocate(image));
 }
 
 bool Display::destroySharedImage(EGLImageKHR image)
