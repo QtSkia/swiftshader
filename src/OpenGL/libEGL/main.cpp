@@ -100,6 +100,7 @@ DESTRUCTOR void detachProcess()
 }
 
 #if defined(_WIN32)
+#ifndef NDEBUG
 static INT_PTR CALLBACK DebuggerWaitDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	RECT rect;
@@ -136,6 +137,7 @@ static void WaitForDebugger(HINSTANCE instance)
 		DialogBoxIndirect(instance, dialogTemplate, NULL, DebuggerWaitDialogProc);
 	}
 }
+#endif
 
 extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 {
