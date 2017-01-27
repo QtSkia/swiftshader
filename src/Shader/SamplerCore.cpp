@@ -1677,7 +1677,7 @@ namespace sw
 		return As<Short4>(UShort4(tmp));
 	}
 
-	void SamplerCore::computeIndices(Int index[4], Short4 uuuu, Short4 vvvv, Short4 wwww, Vector4f &offset, const Pointer<Byte> &mipmap, SamplerFunction function)
+	void SamplerCore::computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4 wwww, Vector4f &offset, const Pointer<Byte> &mipmap, SamplerFunction function)
 	{
 		bool texelFetch = (function == Fetch);
 		bool hasOffset = (function.option == Offset);
@@ -1734,8 +1734,8 @@ namespace sw
 			{
 				size *= Int(*Pointer<Short>(mipmap + OFFSET(Mipmap, depth)));
 			}
-			Int min = Int(0);
-			Int max = size - Int(1);
+			UInt min = 0;
+			UInt max = size - 1;
 
 			for(int i = 0; i < 4; i++)
 			{
@@ -1746,7 +1746,7 @@ namespace sw
 
 	void SamplerCore::sampleTexel(Vector4s &c, Short4 &uuuu, Short4 &vvvv, Short4 &wwww, Vector4f &offset, Pointer<Byte> &mipmap, Pointer<Byte> buffer[4], SamplerFunction function)
 	{
-		Int index[4];
+		UInt index[4];
 
 		computeIndices(index, uuuu, vvvv, wwww, offset, mipmap, function);
 
@@ -1757,10 +1757,10 @@ namespace sw
 
 		if(has16bitTextureFormat())
 		{
-			c.x = Insert(c.x, *Pointer<Short>(buffer[f0] + 2 * index[0]), 0);
-			c.x = Insert(c.x, *Pointer<Short>(buffer[f1] + 2 * index[1]), 1);
-			c.x = Insert(c.x, *Pointer<Short>(buffer[f2] + 2 * index[2]), 2);
-			c.x = Insert(c.x, *Pointer<Short>(buffer[f3] + 2 * index[3]), 3);
+			c.x = Insert(c.x, Pointer<Short>(buffer[f0])[index[0]], 0);
+			c.x = Insert(c.x, Pointer<Short>(buffer[f1])[index[1]], 1);
+			c.x = Insert(c.x, Pointer<Short>(buffer[f2])[index[2]], 2);
+			c.x = Insert(c.x, Pointer<Short>(buffer[f3])[index[3]], 3);
 
 			switch(state.textureFormat)
 			{
@@ -1779,10 +1779,10 @@ namespace sw
 			{
 			case 4:
 				{
-					Byte4 c0 = *Pointer<Byte4>(buffer[f0] + 4 * index[0]);
-					Byte4 c1 = *Pointer<Byte4>(buffer[f1] + 4 * index[1]);
-					Byte4 c2 = *Pointer<Byte4>(buffer[f2] + 4 * index[2]);
-					Byte4 c3 = *Pointer<Byte4>(buffer[f3] + 4 * index[3]);
+					Byte4 c0 = Pointer<Byte4>(buffer[f0])[index[0]];
+					Byte4 c1 = Pointer<Byte4>(buffer[f1])[index[1]];
+					Byte4 c2 = Pointer<Byte4>(buffer[f2])[index[2]];
+					Byte4 c3 = Pointer<Byte4>(buffer[f3])[index[3]];
 					c.x = Unpack(c0, c1);
 					c.y = Unpack(c2, c3);
 
@@ -1822,10 +1822,10 @@ namespace sw
 				break;
 			case 3:
 				{
-					Byte4 c0 = *Pointer<Byte4>(buffer[f0] + 4 * index[0]);
-					Byte4 c1 = *Pointer<Byte4>(buffer[f1] + 4 * index[1]);
-					Byte4 c2 = *Pointer<Byte4>(buffer[f2] + 4 * index[2]);
-					Byte4 c3 = *Pointer<Byte4>(buffer[f3] + 4 * index[3]);
+					Byte4 c0 = Pointer<Byte4>(buffer[f0])[index[0]];
+					Byte4 c1 = Pointer<Byte4>(buffer[f1])[index[1]];
+					Byte4 c2 = Pointer<Byte4>(buffer[f2])[index[2]];
+					Byte4 c3 = Pointer<Byte4>(buffer[f3])[index[3]];
 					c.x = Unpack(c0, c1);
 					c.y = Unpack(c2, c3);
 
@@ -1860,10 +1860,10 @@ namespace sw
 				}
 				break;
 			case 2:
-				c.x = Insert(c.x, *Pointer<Short>(buffer[f0] + 2 * index[0]), 0);
-				c.x = Insert(c.x, *Pointer<Short>(buffer[f1] + 2 * index[1]), 1);
-				c.x = Insert(c.x, *Pointer<Short>(buffer[f2] + 2 * index[2]), 2);
-				c.x = Insert(c.x, *Pointer<Short>(buffer[f3] + 2 * index[3]), 3);
+				c.x = Insert(c.x, Pointer<Short>(buffer[f0])[index[0]], 0);
+				c.x = Insert(c.x, Pointer<Short>(buffer[f1])[index[1]], 1);
+				c.x = Insert(c.x, Pointer<Short>(buffer[f2])[index[2]], 2);
+				c.x = Insert(c.x, Pointer<Short>(buffer[f3])[index[3]], 3);
 
 				switch(state.textureFormat)
 				{
@@ -1899,10 +1899,10 @@ namespace sw
 			switch(textureComponentCount())
 			{
 			case 4:
-				c.x = *Pointer<Short4>(buffer[f0] + 8 * index[0]);
-				c.y = *Pointer<Short4>(buffer[f1] + 8 * index[1]);
-				c.z = *Pointer<Short4>(buffer[f2] + 8 * index[2]);
-				c.w = *Pointer<Short4>(buffer[f3] + 8 * index[3]);
+				c.x = Pointer<Short4>(buffer[f0])[index[0]];
+				c.y = Pointer<Short4>(buffer[f1])[index[1]];
+				c.z = Pointer<Short4>(buffer[f2])[index[2]];
+				c.w = Pointer<Short4>(buffer[f3])[index[3]];
 				transpose4x4(c.x, c.y, c.z, c.w);
 				break;
 			case 2:
@@ -1915,10 +1915,10 @@ namespace sw
 				c.y = UnpackHigh(As<Int2>(c.y), As<Int2>(c.z));
 				break;
 			case 1:
-				c.x = Insert(c.x, *Pointer<Short>(buffer[f0] + 2 * index[0]), 0);
-				c.x = Insert(c.x, *Pointer<Short>(buffer[f1] + 2 * index[1]), 1);
-				c.x = Insert(c.x, *Pointer<Short>(buffer[f2] + 2 * index[2]), 2);
-				c.x = Insert(c.x, *Pointer<Short>(buffer[f3] + 2 * index[3]), 3);
+				c.x = Insert(c.x, Pointer<Short>(buffer[f0])[index[0]], 0);
+				c.x = Insert(c.x, Pointer<Short>(buffer[f1])[index[1]], 1);
+				c.x = Insert(c.x, Pointer<Short>(buffer[f2])[index[2]], 2);
+				c.x = Insert(c.x, Pointer<Short>(buffer[f3])[index[3]], 3);
 				break;
 			default:
 				ASSERT(false);
@@ -1977,25 +1977,25 @@ namespace sw
 			const float G0 = (studioSwing * -16 * Yy - 128 * Gu - 128 * Gv) / 255;
 			const float B0 = (studioSwing * -16 * Yy - 128 * Bu) / 255;
 
-			Int c0 = Int(*Pointer<Byte>(buffer[0] + index[0]));
-			Int c1 = Int(*Pointer<Byte>(buffer[0] + index[1]));
-			Int c2 = Int(*Pointer<Byte>(buffer[0] + index[2]));
-			Int c3 = Int(*Pointer<Byte>(buffer[0] + index[3]));
+			Int c0 = Int(buffer[0][index[0]]);
+			Int c1 = Int(buffer[0][index[1]]);
+			Int c2 = Int(buffer[0][index[2]]);
+			Int c3 = Int(buffer[0][index[3]]);
 			c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24);
 			UShort4 Y = As<UShort4>(Unpack(As<Byte4>(c0)));
 
 			computeIndices(index, uuuu, vvvv, wwww, offset, mipmap + sizeof(Mipmap), function);
-			c0 = Int(*Pointer<Byte>(buffer[1] + index[0]));
-			c1 = Int(*Pointer<Byte>(buffer[1] + index[1]));
-			c2 = Int(*Pointer<Byte>(buffer[1] + index[2]));
-			c3 = Int(*Pointer<Byte>(buffer[1] + index[3]));
+			c0 = Int(buffer[1][index[0]]);
+			c1 = Int(buffer[1][index[1]]);
+			c2 = Int(buffer[1][index[2]]);
+			c3 = Int(buffer[1][index[3]]);
 			c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24);
 			UShort4 V = As<UShort4>(Unpack(As<Byte4>(c0)));
 
-			c0 = Int(*Pointer<Byte>(buffer[2] + index[0]));
-			c1 = Int(*Pointer<Byte>(buffer[2] + index[1]));
-			c2 = Int(*Pointer<Byte>(buffer[2] + index[2]));
-			c3 = Int(*Pointer<Byte>(buffer[2] + index[3]));
+			c0 = Int(buffer[2][index[0]]);
+			c1 = Int(buffer[2][index[1]]);
+			c2 = Int(buffer[2][index[2]]);
+			c3 = Int(buffer[2][index[3]]);
 			c0 = c0 | (c1 << 8) | (c2 << 16) | (c3 << 24);
 			UShort4 U = As<UShort4>(Unpack(As<Byte4>(c0)));
 
@@ -2023,7 +2023,7 @@ namespace sw
 
 	void SamplerCore::sampleTexel(Vector4f &c, Short4 &uuuu, Short4 &vvvv, Short4 &wwww, Vector4f &offset, Float4 &z, Pointer<Byte> &mipmap, Pointer<Byte> buffer[4], SamplerFunction function)
 	{
-		Int index[4];
+		UInt index[4];
 
 		computeIndices(index, uuuu, vvvv, wwww, offset, mipmap, function);
 
