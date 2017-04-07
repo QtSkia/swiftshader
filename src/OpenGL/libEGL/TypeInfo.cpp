@@ -18,11 +18,11 @@
 
 namespace sw
 {
-void FrameBuffer::typeinfo() {}
-void Surface::typeinfo() {}
+inline void FrameBuffer::typeinfo() {}
+inline void Surface::typeinfo() {}
 }
 
 namespace egl
 {
-void Image::typeinfo() {}
+inline void Image::typeinfo() {}
 }

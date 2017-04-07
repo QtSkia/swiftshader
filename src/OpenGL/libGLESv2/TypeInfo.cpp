@@ -17,6 +17,6 @@
 
 namespace egl
 {
-void Surface::typeinfo() {}
-void Display::typeinfo() {}
+inline void Surface::typeinfo() {}
+inline void Display::typeinfo() {}
 }
