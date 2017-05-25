@@ -14,7 +14,7 @@
 
 // debug.cpp: Debugging utilities.
 
-#include "common/debug.h"
+#include "debug.h"
 
 #ifdef  __ANDROID__
 #include <utils/String8.h>
