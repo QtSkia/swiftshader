@@ -27,11 +27,7 @@
 
 #include <EGL/eglext.h>
 
-static sw::Thread::LocalStorageKey currentTLS() {
-	static sw::Thread::LocalStorageKey rval =
-		sw::Thread::allocateLocalStorageKey();
-	return rval;
-}
+static sw::Thread::LocalStorageKey currentTLS = TLS_OUT_OF_INDEXES;
 
 #if !defined(_MSC_VER)
 #define CONSTRUCTOR __attribute__((constructor))
@@ -43,23 +39,31 @@ static sw::Thread::LocalStorageKey currentTLS() {
 
 namespace egl
 {
-void attachThread()
+Current *attachThread()
 {
 	TRACE("()");
 
-	Current *current = new Current;
-
-	if(current)
+	if(currentTLS == TLS_OUT_OF_INDEXES)
 	{
-		sw::Thread::setLocalStorage(currentTLS(), current);
-
-		current->error = EGL_SUCCESS;
-		current->API = EGL_OPENGL_ES_API;
-		current->display = EGL_NO_DISPLAY;
-		current->context = nullptr;
-		current->drawSurface = nullptr;
-		current->readSurface = nullptr;
+		currentTLS = sw::Thread::allocateLocalStorageKey();
 	}
+
+	Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+
+	if(!current)
+	{
+		current = new Current;
+
+		sw::Thread::setLocalStorage(currentTLS, current);
+	}
+
+	current->error = EGL_SUCCESS;
+	current->API = EGL_OPENGL_ES_API;
+	current->context = nullptr;
+	current->drawSurface = nullptr;
+	current->readSurface = nullptr;
+
+	return current;
 }
 
 void detachThread()
@@ -68,8 +72,8 @@ void detachThread()
 
 	eglMakeCurrent(EGL_NO_DISPLAY, EGL_NO_CONTEXT, EGL_NO_SURFACE, EGL_NO_SURFACE);
 
-	delete (Current*)sw::Thread::getLocalStorage(currentTLS());
-	sw::Thread::setLocalStorage(currentTLS(), nullptr);
+	delete (Current*)sw::Thread::getLocalStorage(currentTLS);
+	sw::Thread::setLocalStorage(currentTLS, nullptr);
 }
 
 CONSTRUCTOR void attachProcess()
@@ -95,7 +99,7 @@ DESTRUCTOR void detachProcess()
 	TRACE("()");
 
 	detachThread();
-	sw::Thread::freeLocalStorageKey(currentTLS());
+	sw::Thread::freeLocalStorageKey(currentTLS);
 }
 }
 
@@ -170,14 +174,14 @@ namespace egl
 {
 static Current *getCurrent(void)
 {
-	Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS());
+	Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
 
 	if(!current)
 	{
-		attachThread();
+		current = attachThread();
 	}
 
-	return (Current*)sw::Thread::getLocalStorage(currentTLS());
+	return current;
 }
 
 void setCurrentError(EGLint error)
