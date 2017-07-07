@@ -75,6 +75,10 @@ namespace vulkan
 		struct Instance *instance;
 		VkAllocationCallbacks alloc;
 	};
+
+	struct Sampler
+	{
+	};
 }
 #endif
 

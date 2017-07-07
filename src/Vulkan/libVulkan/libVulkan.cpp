@@ -444,4 +444,49 @@ namespace vulkan
 
 		*pMemoryProperties = physDevice->memory;
 	}
+
+	VkResult CreateSampler(VkDevice device, const VkSamplerCreateInfo * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkSampler * pSampler)
+	{
+		GET_FROM_HANDLE(Device, myDevice, device);
+
+		Sampler *sampler = nullptr;
+
+		assert(pCreateInfo->sType == VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO);
+
+		if (pAllocator == NULL)
+		{
+			sampler = reinterpret_cast<Sampler *>(vkutils::Alloc(&myDevice->alloc, pAllocator, sizeof(*sampler), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT));
+		}
+		else
+		{
+			sampler = reinterpret_cast<Sampler *>(pAllocator->pfnAllocation(sampler, sizeof(*sampler), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT));
+		}
+
+		if (sampler == NULL)
+		{
+			return VK_ERROR_OUT_OF_HOST_MEMORY;
+		}
+
+		*pSampler = Sampler_to_handle(sampler);
+
+		return VK_SUCCESS;
+	}
+
+	void DestroySampler(VkDevice device, VkSampler sampler, const VkAllocationCallbacks * pAllocator)
+	{
+		assert(sampler != NULL);
+
+		GET_FROM_HANDLE(Device, myDevice, device);
+		GET_FROM_HANDLE(Sampler, mySampler, sampler);
+
+		if (pAllocator == NULL)
+		{
+			vkutils::Free(&myDevice->alloc, mySampler);
+		}
+		else
+		{
+			pAllocator->pfnFree(device, mySampler);
+		}
+	}
+
 }
