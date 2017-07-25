@@ -92,7 +92,8 @@ namespace vulkan
 	void GetPhysicalDeviceMemoryProperties(VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties* pMemoryProperties);
 	VkResult CreateSampler(VkDevice device, const VkSamplerCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSampler* pSampler);
 	void DestroySampler(VkDevice device, VkSampler sampler, const VkAllocationCallbacks* pAllocator);
-
+	VkResult CreateShaderModule(VkDevice device, const VkShaderModuleCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkShaderModule* pShaderModule);
+	void DestroyShaderModule(VkDevice device, VkShaderModule shaderModule, const VkAllocationCallbacks* pAllocator);
 }
 
 extern "C"
@@ -183,7 +184,7 @@ extern "C"
 	VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateDeviceLayerProperties(VkPhysicalDevice physicalDevice, uint32_t* pPropertyCount, VkLayerProperties* pProperties)
 	{
 		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;;
+		return VkResult::VK_SUCCESS;
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkGetDeviceQueue(VkDevice device, uint32_t queueFamilyIndex, uint32_t queueIndex, VkQueue* pQueue)
@@ -424,13 +425,12 @@ extern "C"
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkCreateShaderModule(VkDevice device, const VkShaderModuleCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkShaderModule* pShaderModule)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::CreateShaderModule(device, pCreateInfo, pAllocator, pShaderModule);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkDestroyShaderModule(VkDevice device, VkShaderModule shaderModule, const VkAllocationCallbacks* pAllocator)
 	{
-		UNIMPLEMENTED();
+		vulkan::DestroyShaderModule(device, shaderModule, pAllocator);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkCreatePipelineCache(VkDevice device, const VkPipelineCacheCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkPipelineCache* pPipelineCache)

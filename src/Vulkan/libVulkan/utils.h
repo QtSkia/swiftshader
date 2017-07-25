@@ -46,6 +46,7 @@ namespace vulkan
 	DEFINE_HANDLE_CASTS(Device, VkDevice)
 
 	DEFINE_NONDISP_HANDLE_CASTS(Sampler, VkSampler)
+	DEFINE_NONDISP_HANDLE_CASTS(ShaderModule, VkShaderModule)
 }
 
 

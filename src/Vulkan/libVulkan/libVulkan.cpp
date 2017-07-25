@@ -5,6 +5,7 @@
 #include "Context.h"
 #include <assert.h>
 #include <windows.h>
+#include <iterator>
 
 namespace vulkan
 {
@@ -486,6 +487,53 @@ namespace vulkan
 		else
 		{
 			pAllocator->pfnFree(device, mySampler);
+		}
+	}
+
+	VkResult CreateShaderModule(VkDevice device, const VkShaderModuleCreateInfo * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkShaderModule * pShaderModule)
+	{
+		GET_FROM_HANDLE(Device, myDevice, device);
+		assert(pCreateInfo->sType == VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
+		assert(pCreateInfo->flags == 0);
+
+		ShaderModule *module = nullptr;
+
+		if (pAllocator == NULL)
+		{
+			module = new (vkutils::Alloc(&myDevice->alloc, pAllocator, sizeof(*module), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) ShaderModule;
+		}
+		else
+		{
+			module = new (pAllocator->pfnAllocation(device, sizeof(*module), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) ShaderModule;
+		}
+
+		if (module == NULL)
+		{
+			return VK_ERROR_OUT_OF_HOST_MEMORY;
+		}
+
+		module->data.resize(pCreateInfo->codeSize / 4);
+		module->data.assign(pCreateInfo->pCode, pCreateInfo->pCode + (pCreateInfo->codeSize / 4));
+
+		*pShaderModule = ShaderModule_to_handle(module);
+
+		return VK_SUCCESS;
+	}
+
+	void DestroyShaderModule(VkDevice device, VkShaderModule shaderModule, const VkAllocationCallbacks * pAllocator)
+	{
+		assert(shaderModule != NULL);
+
+		GET_FROM_HANDLE(Device, myDevice, device);
+		GET_FROM_HANDLE(ShaderModule, myShaderModule, shaderModule);
+
+		if (pAllocator == NULL)
+		{
+			vkutils::Free(&myDevice->alloc, myShaderModule);
+		}
+		else
+		{
+			pAllocator->pfnFree(nullptr, myShaderModule);
 		}
 	}
 
