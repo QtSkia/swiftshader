@@ -94,6 +94,49 @@ namespace vulkan
 	void DestroySampler(VkDevice device, VkSampler sampler, const VkAllocationCallbacks* pAllocator);
 	VkResult CreateShaderModule(VkDevice device, const VkShaderModuleCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkShaderModule* pShaderModule);
 	void DestroyShaderModule(VkDevice device, VkShaderModule shaderModule, const VkAllocationCallbacks* pAllocator);
+	void GetDeviceQueue(VkDevice device, uint32_t queueFamilyIndex, uint32_t queueIndex, VkQueue* pQueue);
+	VkResult CreateBuffer(VkDevice device, const VkBufferCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkBuffer* pBuffer);
+	void DestroyBuffer(VkDevice device, VkBuffer buffer, const VkAllocationCallbacks* pAllocator);
+	void GetBufferMemoryRequirements(VkDevice device, VkBuffer buffer, VkMemoryRequirements* pMemoryRequirements);
+	VkResult AllocateMemory(VkDevice device, const VkMemoryAllocateInfo* pAllocateInfo, const VkAllocationCallbacks* pAllocator, VkDeviceMemory* pMemory);
+	VkResult MapMemory(VkDevice device, VkDeviceMemory memory, VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags, void** ppData);
+	VkResult BindBufferMemory(VkDevice device, VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize memoryOffset);
+	VkResult CreateImage(VkDevice device, const VkImageCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkImage* pImage);
+	void DestroyImage(VkDevice device, VkImage image, const VkAllocationCallbacks* pAllocator);
+	void GetImageMemoryRequirements(VkDevice device, VkImage image, VkMemoryRequirements* pMemoryRequirements);
+	void UnmapMemory(VkDevice device, VkDeviceMemory memory);
+	void FreeMemory(VkDevice device, VkDeviceMemory memory, const VkAllocationCallbacks* pAllocator);
+	VkResult BindImageMemory(VkDevice device, VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset);
+	VkResult CreateRenderPass(VkDevice device, const VkRenderPassCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkRenderPass* pRenderPass);
+	void DestroyRenderPass(VkDevice device, VkRenderPass renderPass, const VkAllocationCallbacks* pAllocator);
+	VkResult CreateImageView(VkDevice device, const VkImageViewCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkImageView* pView);
+	void DestroyImageView(VkDevice device, VkImageView imageView, const VkAllocationCallbacks* pAllocator);
+	VkResult CreatePipelineLayout(VkDevice device, const VkPipelineLayoutCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkPipelineLayout* pPipelineLayout);
+	void DestroyPipelineLayout(VkDevice device, VkPipelineLayout pipelineLayout, const VkAllocationCallbacks* pAllocator);
+	VkResult CreateGraphicsPipelines(VkDevice device, VkPipelineCache pipelineCache, uint32_t createInfoCount, const VkGraphicsPipelineCreateInfo* pCreateInfos, const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines);
+	void DestroyPipeline(VkDevice device, VkPipeline pipeline, const VkAllocationCallbacks* pAllocator);
+	VkResult CreateFramebuffer(VkDevice device, const VkFramebufferCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkFramebuffer* pFramebuffer);
+	void DestroyFramebuffer(VkDevice device, VkFramebuffer framebuffer, const VkAllocationCallbacks* pAllocator);
+	VkResult CreateCommandPool(VkDevice device, const VkCommandPoolCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkCommandPool* pCommandPool);
+	void DestroyCommandPool(VkDevice device, VkCommandPool commandPool, const VkAllocationCallbacks* pAllocator);
+	VkResult AllocateCommandBuffers(VkDevice device, const VkCommandBufferAllocateInfo* pAllocateInfo, VkCommandBuffer* pCommandBuffers);
+	void FreeCommandBuffers(VkDevice device, VkCommandPool commandPool, uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers);
+	VkResult BeginCommandBuffer(VkCommandBuffer commandBuffer, const VkCommandBufferBeginInfo* pBeginInfo);
+	void CmdBindPipeline(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline);
+	void CmdPipelineBarrier(VkCommandBuffer commandBuffer, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkDependencyFlags dependencyFlags, uint32_t memoryBarrierCount, const VkMemoryBarrier* pMemoryBarriers,
+		uint32_t bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers, uint32_t imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers);
+	void CmdBeginRenderPass(VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo* pRenderPassBegin, VkSubpassContents contents);
+	void CmdEndRenderPass(VkCommandBuffer commandBuffer);
+	void CmdBindVertexBuffers(VkCommandBuffer commandBuffer, uint32_t firstBinding, uint32_t bindingCount, const VkBuffer* pBuffers, const VkDeviceSize* pOffsets);
+	void CmdDraw(VkCommandBuffer commandBuffer, uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance);
+	void CmdCopyImageToBuffer(VkCommandBuffer commandBuffer, VkImage srcImage, VkImageLayout srcImageLayout, VkBuffer dstBuffer, uint32_t regionCount, const VkBufferImageCopy* pRegions);
+	VkResult EndCommandBuffer(VkCommandBuffer commandBuffer);
+	VkResult FlushMappedMemoryRanges(VkDevice device, uint32_t memoryRangeCount, const VkMappedMemoryRange* pMemoryRanges);
+	VkResult InvalidateMappedMemoryRanges(VkDevice device, uint32_t memoryRangeCount, const VkMappedMemoryRange* pMemoryRanges);
+	VkResult CreateFence(VkDevice device, const VkFenceCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkFence* pFence);
+	VkResult WaitForFences(VkDevice device, uint32_t fenceCount, const VkFence* pFences, VkBool32 waitAll, uint64_t timeout);
+	void DestroyFence(VkDevice device, VkFence fence, const VkAllocationCallbacks* pAllocator);
+	VkResult QueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence);
 }
 
 extern "C"
@@ -189,13 +232,12 @@ extern "C"
 
 	VKAPI_ATTR void VKAPI_CALL vkGetDeviceQueue(VkDevice device, uint32_t queueFamilyIndex, uint32_t queueIndex, VkQueue* pQueue)
 	{
-		UNIMPLEMENTED();
+		vulkan::GetDeviceQueue(device, queueFamilyIndex, queueIndex, pQueue);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkQueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;;
+		return vulkan::QueueSubmit(queue, submitCount, pSubmits, fence);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkQueueWaitIdle(VkQueue queue)
@@ -212,36 +254,32 @@ extern "C"
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkAllocateMemory(VkDevice device, const VkMemoryAllocateInfo* pAllocateInfo, const VkAllocationCallbacks* pAllocator, VkDeviceMemory* pMemory)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::AllocateMemory(device, pAllocateInfo, pAllocator, pMemory);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkFreeMemory(VkDevice device, VkDeviceMemory memory, const VkAllocationCallbacks* pAllocator)
 	{
-		UNIMPLEMENTED();
+		vulkan::FreeMemory(device, memory, pAllocator);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkMapMemory(VkDevice device, VkDeviceMemory memory, VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags, void** ppData)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::MapMemory(device, memory, offset, size, flags, ppData);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkUnmapMemory(VkDevice device, VkDeviceMemory memory)
 	{
-		UNIMPLEMENTED();
+		vulkan::UnmapMemory(device, memory);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkFlushMappedMemoryRanges(VkDevice device, uint32_t memoryRangeCount, const VkMappedMemoryRange* pMemoryRanges)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::FlushMappedMemoryRanges(device, memoryRangeCount, pMemoryRanges);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkInvalidateMappedMemoryRanges(VkDevice device, uint32_t memoryRangeCount, const VkMappedMemoryRange* pMemoryRanges)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::InvalidateMappedMemoryRanges(device, memoryRangeCount, pMemoryRanges);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkGetDeviceMemoryCommitment(VkDevice device, VkDeviceMemory memory, VkDeviceSize* pCommittedMemoryInBytes)
@@ -251,24 +289,22 @@ extern "C"
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkBindBufferMemory(VkDevice device, VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize memoryOffset)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::BindBufferMemory(device, buffer, memory, memoryOffset);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkBindImageMemory(VkDevice device, VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::BindImageMemory(device, image, memory, memoryOffset);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkGetBufferMemoryRequirements(VkDevice device, VkBuffer buffer, VkMemoryRequirements* pMemoryRequirements)
 	{
-		UNIMPLEMENTED();
+		vulkan::GetBufferMemoryRequirements(device, buffer, pMemoryRequirements);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkGetImageMemoryRequirements(VkDevice device, VkImage image, VkMemoryRequirements* pMemoryRequirements)
 	{
-		UNIMPLEMENTED();
+		vulkan::GetImageMemoryRequirements(device, image, pMemoryRequirements);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkGetImageSparseMemoryRequirements(VkDevice device, VkImage image, uint32_t* pSparseMemoryRequirementCount, VkSparseImageMemoryRequirements* pSparseMemoryRequirements)
@@ -290,13 +326,12 @@ extern "C"
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkCreateFence(VkDevice device, const VkFenceCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkFence* pFence)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::CreateFence(device, pCreateInfo, pAllocator, pFence);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkDestroyFence(VkDevice device, VkFence fence, const VkAllocationCallbacks* pAllocator)
 	{
-		UNIMPLEMENTED();
+		vulkan::DestroyFence(device, fence, pAllocator);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkResetFences(VkDevice device, uint32_t fenceCount, const VkFence* pFences)
@@ -313,8 +348,7 @@ extern "C"
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkWaitForFences(VkDevice device, uint32_t fenceCount, const VkFence* pFences, VkBool32 waitAll, uint64_t timeout)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::WaitForFences(device, fenceCount, pFences, waitAll, timeout);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkCreateSemaphore(VkDevice device, const VkSemaphoreCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSemaphore* pSemaphore)
@@ -376,13 +410,12 @@ extern "C"
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkCreateBuffer(VkDevice device, const VkBufferCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkBuffer* pBuffer)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::CreateBuffer(device, pCreateInfo, pAllocator, pBuffer);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkDestroyBuffer(VkDevice device, VkBuffer buffer, const VkAllocationCallbacks* pAllocator)
 	{
-		UNIMPLEMENTED();
+		vulkan::DestroyBuffer(device, buffer, pAllocator);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkCreateBufferView(VkDevice device, const VkBufferViewCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkBufferView* pView)
@@ -398,13 +431,12 @@ extern "C"
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkImage* pImage)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::CreateImage(device, pCreateInfo, pAllocator, pImage);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkDestroyImage(VkDevice device, VkImage image, const VkAllocationCallbacks* pAllocator)
 	{
-		UNIMPLEMENTED();
+		vulkan::DestroyImage(device, image, pAllocator);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkGetImageSubresourceLayout(VkDevice device, VkImage image, const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout)
@@ -414,13 +446,12 @@ extern "C"
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkCreateImageView(VkDevice device, const VkImageViewCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkImageView* pView)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::CreateImageView(device, pCreateInfo, pAllocator, pView);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkDestroyImageView(VkDevice device, VkImageView imageView, const VkAllocationCallbacks* pAllocator)
 	{
-		UNIMPLEMENTED();
+		vulkan::DestroyImageView(device, imageView, pAllocator);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkCreateShaderModule(VkDevice device, const VkShaderModuleCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkShaderModule* pShaderModule)
@@ -458,8 +489,7 @@ extern "C"
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache pipelineCache, uint32_t createInfoCount, const VkGraphicsPipelineCreateInfo* pCreateInfos, const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::CreateGraphicsPipelines(device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkCreateComputePipelines(VkDevice device, VkPipelineCache pipelineCache, uint32_t createInfoCount, const VkComputePipelineCreateInfo* pCreateInfos, const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines)
@@ -470,18 +500,17 @@ extern "C"
 
 	VKAPI_ATTR void VKAPI_CALL vkDestroyPipeline(VkDevice device, VkPipeline pipeline, const VkAllocationCallbacks* pAllocator)
 	{
-		UNIMPLEMENTED();
+		vulkan::DestroyPipeline(device, pipeline, pAllocator);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkCreatePipelineLayout(VkDevice device, const VkPipelineLayoutCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkPipelineLayout* pPipelineLayout)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::CreatePipelineLayout(device, pCreateInfo, pAllocator, pPipelineLayout);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkDestroyPipelineLayout(VkDevice device, VkPipelineLayout pipelineLayout, const VkAllocationCallbacks* pAllocator)
 	{
-		UNIMPLEMENTED();
+		vulkan::DestroyPipelineLayout(device, pipelineLayout, pAllocator);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkCreateSampler(VkDevice device, const VkSamplerCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSampler* pSampler)
@@ -542,24 +571,22 @@ extern "C"
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkCreateFramebuffer(VkDevice device, const VkFramebufferCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkFramebuffer* pFramebuffer)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::CreateFramebuffer(device, pCreateInfo, pAllocator, pFramebuffer);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkDestroyFramebuffer(VkDevice device, VkFramebuffer framebuffer, const VkAllocationCallbacks* pAllocator)
 	{
-		UNIMPLEMENTED();
+		vulkan::DestroyFramebuffer(device, framebuffer, pAllocator);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkCreateRenderPass(VkDevice device, const VkRenderPassCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkRenderPass* pRenderPass)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::CreateRenderPass(device, pCreateInfo, pAllocator, pRenderPass);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkDestroyRenderPass(VkDevice device, VkRenderPass renderPass, const VkAllocationCallbacks* pAllocator)
 	{
-		UNIMPLEMENTED();
+		vulkan::DestroyRenderPass(device, renderPass, pAllocator);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkGetRenderAreaGranularity(VkDevice device, VkRenderPass renderPass, VkExtent2D* pGranularity)
@@ -569,13 +596,12 @@ extern "C"
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkCreateCommandPool(VkDevice device, const VkCommandPoolCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkCommandPool* pCommandPool)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::CreateCommandPool(device, pCreateInfo, pAllocator, pCommandPool);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkDestroyCommandPool(VkDevice device, VkCommandPool commandPool, const VkAllocationCallbacks* pAllocator)
 	{
-		UNIMPLEMENTED();
+		vulkan::DestroyCommandPool(device, commandPool, pAllocator);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkResetCommandPool(VkDevice device, VkCommandPool commandPool, VkCommandPoolResetFlags flags)
@@ -586,25 +612,22 @@ extern "C"
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkAllocateCommandBuffers(VkDevice device, const VkCommandBufferAllocateInfo* pAllocateInfo, VkCommandBuffer* pCommandBuffers)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::AllocateCommandBuffers(device, pAllocateInfo, pCommandBuffers);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkFreeCommandBuffers(VkDevice device, VkCommandPool commandPool, uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers)
 	{
-		UNIMPLEMENTED();
+		vulkan::FreeCommandBuffers(device, commandPool, commandBufferCount, pCommandBuffers);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkBeginCommandBuffer(VkCommandBuffer commandBuffer, const VkCommandBufferBeginInfo* pBeginInfo)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::BeginCommandBuffer(commandBuffer, pBeginInfo);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkEndCommandBuffer(VkCommandBuffer commandBuffer)
 	{
-		UNIMPLEMENTED();
-		return VkResult::VK_SUCCESS;
+		return vulkan::EndCommandBuffer(commandBuffer);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkResetCommandBuffer(VkCommandBuffer commandBuffer, VkCommandBufferResetFlags flags)
@@ -615,7 +638,7 @@ extern "C"
 
 	VKAPI_ATTR void VKAPI_CALL vkCmdBindPipeline(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline)
 	{
-		UNIMPLEMENTED();
+		vulkan::CmdBindPipeline(commandBuffer, pipelineBindPoint, pipeline);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkCmdSetViewport(VkCommandBuffer commandBuffer, uint32_t firstViewport, uint32_t viewportCount, const VkViewport* pViewports)
@@ -676,12 +699,12 @@ extern "C"
 
 	VKAPI_ATTR void VKAPI_CALL vkCmdBindVertexBuffers(VkCommandBuffer commandBuffer, uint32_t firstBinding, uint32_t bindingCount, const VkBuffer* pBuffers, const VkDeviceSize* pOffsets)
 	{
-		UNIMPLEMENTED();
+		vulkan::CmdBindVertexBuffers(commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkCmdDraw(VkCommandBuffer commandBuffer, uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
 	{
-		UNIMPLEMENTED();
+		vulkan::CmdDraw(commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkCmdDrawIndexed(VkCommandBuffer commandBuffer, uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance)
@@ -731,7 +754,7 @@ extern "C"
 
 	VKAPI_ATTR void VKAPI_CALL vkCmdCopyImageToBuffer(VkCommandBuffer commandBuffer, VkImage srcImage, VkImageLayout srcImageLayout, VkBuffer dstBuffer, uint32_t regionCount, const VkBufferImageCopy* pRegions)
 	{
-		UNIMPLEMENTED();
+		vulkan::CmdCopyImageToBuffer(commandBuffer, srcImage, srcImageLayout, dstBuffer, regionCount, pRegions);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkCmdUpdateBuffer(VkCommandBuffer commandBuffer, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize dataSize, const void* pData)
@@ -784,7 +807,7 @@ extern "C"
 		uint32_t bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers, uint32_t imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers)
 
 	{
-		UNIMPLEMENTED();
+		vulkan::CmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkCmdBeginQuery(VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t query, VkQueryControlFlags flags)
@@ -819,7 +842,7 @@ extern "C"
 
 	VKAPI_ATTR void VKAPI_CALL vkCmdBeginRenderPass(VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo* pRenderPassBegin, VkSubpassContents contents)
 	{
-		UNIMPLEMENTED();
+		vulkan::CmdBeginRenderPass(commandBuffer, pRenderPassBegin, contents);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkCmdNextSubpass(VkCommandBuffer commandBuffer, VkSubpassContents contents)
@@ -829,7 +852,7 @@ extern "C"
 
 	VKAPI_ATTR void VKAPI_CALL vkCmdEndRenderPass(VkCommandBuffer commandBuffer)
 	{
-		UNIMPLEMENTED();
+		vulkan::CmdEndRenderPass(commandBuffer);
 	}
 
 	VKAPI_ATTR void VKAPI_CALL vkCmdExecuteCommands(VkCommandBuffer commandBuffer, uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers)

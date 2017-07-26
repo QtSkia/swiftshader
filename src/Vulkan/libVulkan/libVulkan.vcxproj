@@ -198,18 +198,33 @@ copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\OpenGL\common\debug.cpp" />
+    <ClCompile Include="Assert.cpp" />
+    <ClCompile Include="CommandAllocator.cpp" />
     <ClCompile Include="Context.cpp" />
     <ClCompile Include="libVulkan.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Math.cpp" />
+    <ClCompile Include="RefCounted.cpp" />
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libVulkan.def" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Assert.h" />
+    <ClInclude Include="Buffer.h" />
+    <ClInclude Include="CommandAllocator.h" />
+    <ClInclude Include="Commands.h" />
+    <ClInclude Include="Compiler.h" />
     <ClInclude Include="Context.h" />
     <ClInclude Include="Device.h" />
+    <ClInclude Include="Image.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="Math.h" />
+    <ClInclude Include="Pipeline.h" />
+    <ClInclude Include="Queue.h" />
+    <ClInclude Include="RefCounted.h" />
+    <ClInclude Include="RenderPass.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>

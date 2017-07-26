@@ -17,6 +17,12 @@
 
 #include <unordered_map>
 #include "vulkan/vulkan.h"
+#include "Queue.h"
+#include "Buffer.h"
+#include "Image.h"
+#include "RenderPass.h"
+#include "Pipeline.h"
+#include "Commands.h"
 
 namespace vulkan
 {
@@ -49,8 +55,6 @@ namespace vulkan
 		{ 1, 1, 1 }, // Per spec: "Queues supporting graphics and/or compute operations must report (1,1,1) in minImageTransferGranularity, meaning that there are no additional restrictions on the granularity of image transfer operations for these queues."
 	};
 
-
-
 	struct PhysicalDevice
 	{
 		struct Instance   *instance;
@@ -74,6 +78,7 @@ namespace vulkan
 	{
 		struct Instance *instance;
 		VkAllocationCallbacks alloc;
+		struct Queue queue;
 	};
 
 	struct Sampler
@@ -86,6 +91,15 @@ namespace vulkan
 
 		ShaderModule() {}
 	};
+
+	struct DeviceMemory
+	{
+		VkMemoryType type;
+		VkDeviceSize size;
+		void *map;
+	};
+
+
 }
 #endif
 

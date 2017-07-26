@@ -42,11 +42,23 @@ namespace vulkan
 
 
 	DEFINE_HANDLE_CASTS(Instance, VkInstance)
-	DEFINE_HANDLE_CASTS(PhysicalDevice, VkPhysicalDevice)
-	DEFINE_HANDLE_CASTS(Device, VkDevice)
+		DEFINE_HANDLE_CASTS(PhysicalDevice, VkPhysicalDevice)
+		DEFINE_HANDLE_CASTS(Device, VkDevice)
+		DEFINE_HANDLE_CASTS(Queue, VkQueue)
+		DEFINE_HANDLE_CASTS(CommandBuffer, VkCommandBuffer)
 
-	DEFINE_NONDISP_HANDLE_CASTS(Sampler, VkSampler)
-	DEFINE_NONDISP_HANDLE_CASTS(ShaderModule, VkShaderModule)
+		DEFINE_NONDISP_HANDLE_CASTS(Sampler, VkSampler)
+		DEFINE_NONDISP_HANDLE_CASTS(ShaderModule, VkShaderModule)
+		DEFINE_NONDISP_HANDLE_CASTS(Buffer, VkBuffer)
+		DEFINE_NONDISP_HANDLE_CASTS(DeviceMemory, VkDeviceMemory)
+		DEFINE_NONDISP_HANDLE_CASTS(Image, VkImage)
+		DEFINE_NONDISP_HANDLE_CASTS(RenderPass, VkRenderPass)
+		DEFINE_NONDISP_HANDLE_CASTS(ImageView, VkImageView)
+		DEFINE_NONDISP_HANDLE_CASTS(PipelineLayout, VkPipelineLayout)
+		DEFINE_NONDISP_HANDLE_CASTS(Pipeline, VkPipeline)
+		DEFINE_NONDISP_HANDLE_CASTS(Framebuffer, VkFramebuffer)
+		DEFINE_NONDISP_HANDLE_CASTS(CommandPool, VkCommandPool)
+		DEFINE_NONDISP_HANDLE_CASTS(Fence, VkFence)
 }
 
 
