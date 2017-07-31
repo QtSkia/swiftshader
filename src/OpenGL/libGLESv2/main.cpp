@@ -241,6 +241,7 @@ void GetShaderInfoLog(GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* i
 void GetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision);
 void GetShaderSource(GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* source);
 const GLubyte* GetString(GLenum name);
+void GetTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLvoid *pixels);
 void GetTexParameterfv(GLenum target, GLenum pname, GLfloat* params);
 void GetTexParameteriv(GLenum target, GLenum pname, GLint* params);
 void GetnUniformfvEXT(GLuint program, GLint location, GLsizei bufSize, GLfloat* params);
@@ -860,6 +861,11 @@ GL_APICALL void GL_APIENTRY glGetShaderSource(GLuint shader, GLsizei bufsize, GL
 GL_APICALL const GLubyte* GL_APIENTRY glGetString(GLenum name)
 {
 	return es2::GetString(name);
+}
+
+GL_APICALL void GL_APIENTRY glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLvoid *pixels)
+{
+	return es2::GetTexImage(target, level, format, type, pixels);
 }
 
 GL_APICALL void GL_APIENTRY glGetTexParameterfv(GLenum target, GLenum pname, GLfloat* params)
@@ -1540,6 +1546,7 @@ LibGLESv2exports::LibGLESv2exports()
 	this->glGetFramebufferAttachmentParameterivOES = es2::GetFramebufferAttachmentParameterivOES;
 	this->glGenerateMipmapOES = es2::GenerateMipmapOES;
 	this->glDrawBuffersEXT = es2::DrawBuffersEXT;
+	this->glGetTexImage = es2::GetTexImage;
 
 	this->es2CreateContext = ::es2CreateContext;
 	this->es2GetProcAddress = ::es2GetProcAddress;

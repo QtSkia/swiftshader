@@ -537,6 +537,7 @@ public:
 	void setUnpackSkipPixels(GLint skipPixels);
 	void setUnpackSkipRows(GLint skipRows);
 	void setUnpackSkipImages(GLint skipImages);
+	egl::Image::PackInfo getPackInfo() const;
 	const egl::Image::UnpackInfo& getUnpackInfo() const;
 
 	void setPackAlignment(GLint alignment);

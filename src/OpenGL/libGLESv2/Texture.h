@@ -115,6 +115,7 @@ public:
 protected:
 	~Texture() override;
 
+	void getImage(egl::Context *context, GLenum format, GLenum type, const egl::Image::PackInfo& packInfo, void *pixels, egl::Image *image);
 	void setImage(egl::Context *context, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels, egl::Image *image);
 	void subImage(egl::Context *context, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels, egl::Image *image);
 	void setCompressedImage(GLsizei imageSize, const void *pixels, egl::Image *image);
@@ -163,6 +164,7 @@ public:
 	GLenum getType(GLenum target, GLint level) const override;
 	sw::Format getInternalFormat(GLenum target, GLint level) const override;
 	int getLevelCount() const override;
+	void getImage(egl::Context *context, GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, const egl::Image::PackInfo& packInfo, void *pixels);
 
 	void setImage(egl::Context *context, GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels);
 	void setCompressedImage(GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels);
@@ -223,6 +225,7 @@ public:
 	sw::Format getInternalFormat(GLenum target, GLint level) const override;
 	int getLevelCount() const override;
 
+	void getImage(egl::Context *context, GLenum target, GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, const egl::Image::PackInfo& packInfo, void *pixels);
 	void setImage(egl::Context *context, GLenum target, GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels);
 	void setCompressedImage(GLenum target, GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels);
 

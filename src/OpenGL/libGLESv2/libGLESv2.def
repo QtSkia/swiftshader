@@ -183,6 +183,7 @@ EXPORTS
 	glGetFramebufferAttachmentParameterivOES
 	glGenerateMipmapOES
 	glDrawBuffersEXT
+	glGetTexImage
 
     ; GLES 3.0 Functions
     glReadBuffer                    @211

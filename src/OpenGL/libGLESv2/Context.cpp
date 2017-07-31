@@ -867,6 +867,18 @@ void Context::setUnpackAlignment(GLint alignment)
 	mState.unpackInfo.alignment = alignment;
 }
 
+egl::Image::PackInfo Context::getPackInfo() const
+{
+	egl::Image::PackInfo packInfo;
+	packInfo.alignment = mState.packAlignment;
+	packInfo.rowLength = mState.packRowLength;
+	packInfo.imageHeight = mState.packImageHeight;
+	packInfo.skipPixels = mState.packSkipPixels;
+	packInfo.skipRows = mState.packSkipRows;
+	packInfo.skipImages = mState.packSkipImages;
+	return packInfo;
+}
+
 const egl::Image::UnpackInfo& Context::getUnpackInfo() const
 {
 	return mState.unpackInfo;

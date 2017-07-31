@@ -290,6 +290,7 @@ global:
 	glGetFramebufferAttachmentParameterivOES;
 	glGenerateMipmapOES;
 	glDrawBuffersEXT;
+	glGetTexImage;
 
 	# Table of function pointers to disambiguate between libraries
 	libGLESv2_swiftshader;

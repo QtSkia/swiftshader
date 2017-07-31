@@ -241,6 +241,7 @@ public:
 	void (*glGetFramebufferAttachmentParameterivOES)(GLenum target, GLenum attachment, GLenum pname, GLint* params);
 	void (*glGenerateMipmapOES)(GLenum target);
 	void (*glDrawBuffersEXT)(GLsizei n, const GLenum *bufs);
+	void (*glGetTexImage)(GLenum target, GLint level, GLenum format, GLenum type, GLvoid * img);
 
 	egl::Context *(*es2CreateContext)(egl::Display *display, const egl::Context *shareContext, int clientVersion, const egl::Config *config);
 	__eglMustCastToProperFunctionPointerType (*es2GetProcAddress)(const char *procname);

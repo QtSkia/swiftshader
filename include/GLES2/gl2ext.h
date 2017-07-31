@@ -2939,6 +2939,15 @@ GL_APICALL void GL_APIENTRY glEndTilingQCOM (GLbitfield preserveMask);
 #define GL_SHADER_BINARY_VIV              0x8FC4
 #endif /* GL_VIV_shader_binary */
 
+// TODO: get an appropriate extension name
+#ifndef GL_EMU_get_tex
+#define GL_EMU_get_tex 1
+typedef void (GL_APIENTRYP PFNGLGETTEXIMAGE)(GLenum target, GLint level, GLenum format, GLenum type, GLvoid *pixels);
+#ifdef GL_GLEXT_PROTOTYPES
+GL_APICALL void GL_APIENTRY glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLvoid *pixels);
+#endif
+#endif /* GL_EMU_GET_TEX */
+
 #ifdef __cplusplus
 }
 #endif
