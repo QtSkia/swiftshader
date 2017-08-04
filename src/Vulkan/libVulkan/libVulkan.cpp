@@ -1,7 +1,6 @@
 #include <stdio.h>
-#include "Context.h"
+#include "Instance.h"
 #include "utils.h"
-#include "Device.h"
 #include "CommandAllocator.h"
 #include <assert.h>
 #include <windows.h>

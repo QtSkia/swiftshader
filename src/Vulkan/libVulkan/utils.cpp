@@ -1,7 +1,7 @@
 #include <string.h>
 #include <map>
 #include "utils.h"
-#include "Context.h"
+#include "Instance.h"
 
 namespace vkutils
 {

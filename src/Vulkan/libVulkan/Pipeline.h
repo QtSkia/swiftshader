@@ -1,6 +1,8 @@
 #ifndef PIPELINE_H
 #define PIPELINE_H
 
+#include "Instance.h"
+
 namespace vulkan
 {
 	struct PipelineLayout

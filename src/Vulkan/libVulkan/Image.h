@@ -1,7 +1,7 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#include "Context.h"
+#include "Instance.h"
 namespace vulkan
 {
 	struct Image

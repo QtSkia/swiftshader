@@ -200,7 +200,7 @@ copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
     <ClCompile Include="..\..\OpenGL\common\debug.cpp" />
     <ClCompile Include="Assert.cpp" />
     <ClCompile Include="CommandAllocator.cpp" />
-    <ClCompile Include="Context.cpp" />
+    <ClCompile Include="Instance.cpp" />
     <ClCompile Include="libVulkan.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Math.cpp" />
@@ -216,9 +216,8 @@ copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
     <ClInclude Include="CommandAllocator.h" />
     <ClInclude Include="Commands.h" />
     <ClInclude Include="Compiler.h" />
-    <ClInclude Include="Context.h" />
-    <ClInclude Include="Device.h" />
     <ClInclude Include="Image.h" />
+    <ClInclude Include="Instance.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="Pipeline.h" />

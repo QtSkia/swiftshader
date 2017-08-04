@@ -15,7 +15,7 @@
 #ifndef BACKEND_COMMANDS_H_
 #define BACKEND_COMMANDS_H_
 
-#include "Context.h"
+#include "Instance.h"
 #include "RefCounted.h"
 
 using namespace vulkan;

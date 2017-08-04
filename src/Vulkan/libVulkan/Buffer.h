@@ -1,6 +1,6 @@
 #ifndef BUFFER_H
 #define BUFFER_H
-#include "Context.h"
+#include "Instance.h"
 #include "Image.h"
 #include "CommandAllocator.h"
 
