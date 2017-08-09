@@ -48,6 +48,7 @@ namespace sw
 	extern bool fullPixelPositionRegister;
 	extern bool leadingVertexFirst;         // Flat shading uses first vertex, else last
 	extern bool secondaryColor;             // Specular lighting is applied after texturing
+	extern bool colorsDefaultToZero;
 
 	extern bool forceWindowed;
 	extern bool complementaryDepthBuffer;
@@ -110,10 +111,12 @@ namespace sw
 		sw::fullPixelPositionRegister = conventions.fullPixelPositionRegister;
 		sw::leadingVertexFirst = conventions.leadingVertexFirst;
 		sw::secondaryColor = conventions.secondaryColor;
+		sw::colorsDefaultToZero = conventions.colorsDefaultToZero;
 		sw::exactColorRounding = exactColorRounding;
 
 		setRenderTarget(0, 0);
 		clipper = new Clipper(symmetricNormalizedDepth);
+		blitter = new Blitter;
 
 		updateViewMatrix = true;
 		updateBaseMatrix = true;
@@ -177,7 +180,10 @@ namespace sw
 		sync->destruct();
 
 		delete clipper;
-		clipper = 0;
+		clipper = nullptr;
+
+		delete blitter;
+		blitter = nullptr;
 
 		terminateThreads();
 		delete resumeApp;
@@ -200,21 +206,6 @@ namespace sw
 	void Renderer::operator delete(void * mem)
 	{
 		sw::deallocate(mem);
-	}
-
-	void Renderer::clear(void *pixel, Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask)
-	{
-		blitter.clear(pixel, format, dest, dRect, rgbaMask);
-	}
-
-	void Renderer::blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil)
-	{
-		blitter.blit(source, sRect, dest, dRect, filter, isStencil);
-	}
-
-	void Renderer::blit3D(Surface *source, Surface *dest)
-	{
-		blitter.blit3D(source, dest);
 	}
 
 	void Renderer::draw(DrawType drawType, unsigned int indexOffset, unsigned int count, bool update)
@@ -679,6 +670,27 @@ namespace sw
 				}
 			}
 		}
+	}
+
+	void Renderer::clear(void *value, Format format, Surface *dest, const Rect &clearRect, unsigned int rgbaMask)
+	{
+		SliceRect rect = clearRect;
+		int samples = dest->getDepth();
+
+		for(rect.slice = 0; rect.slice < samples; rect.slice++)
+		{
+			blitter->clear(value, format, dest, rect, rgbaMask);
+		}
+	}
+
+	void Renderer::blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil)
+	{
+		blitter->blit(source, sRect, dest, dRect, filter, isStencil);
+	}
+
+	void Renderer::blit3D(Surface *source, Surface *dest)
+	{
+		blitter->blit3D(source, dest);
 	}
 
 	void Renderer::threadFunction(void *parameters)
@@ -2307,6 +2319,18 @@ namespace sw
 		else
 		{
 			VertexProcessor::setMaxAnisotropy(sampler, maxAnisotropy);
+		}
+	}
+
+	void Renderer::setHighPrecisionFiltering(SamplerType type, int sampler, bool highPrecisionFiltering)
+	{
+		if(type == SAMPLER_PIXEL)
+		{
+			PixelProcessor::setHighPrecisionFiltering(sampler, highPrecisionFiltering);
+		}
+		else
+		{
+			VertexProcessor::setHighPrecisionFiltering(sampler, highPrecisionFiltering);
 		}
 	}
 

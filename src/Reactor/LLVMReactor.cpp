@@ -2541,7 +2541,7 @@ namespace sw
 	Short4::Short4(RValue<Int> cast)
 	{
 		Value *extend = Nucleus::createZExt(cast.value, Long::getType());
-		Value *swizzle = Swizzle(RValue<Short4>(extend), 0x00).value;
+		Value *swizzle = Swizzle(As<Short4>(extend), 0x00).value;
 
 		storeValue(swizzle);
 	}
@@ -2584,7 +2584,7 @@ namespace sw
 				Value *element = Nucleus::createExtractElement(qword2, 0);
 				Value *short4 = Nucleus::createBitCast(element, Short4::getType());
 			#else   // FIXME: Requires SSE
-				Value *int2 = RValue<Int2>(Int2(RValue<Int4>(packed))).value;
+				Value *int2 = RValue<Int2>(Int2(As<Int4>(packed))).value;
 				Value *short4 = Nucleus::createBitCast(int2, Short4::getType());
 			#endif
 		#endif
@@ -5595,6 +5595,14 @@ namespace sw
 		storeValue(integer);
 	}
 
+	Float::Float(RValue<UInt> cast)
+	{
+		RValue<Float> result = Float(Int(cast & UInt(0x7FFFFFFF))) +
+		                       As<Float>((As<Int>(cast) >> 31) & As<Int>(Float(0x80000000u)));
+
+		storeValue(result.value);
+	}
+
 	Float::Float(float x)
 	{
 		storeValue(Nucleus::createConstantFloat(x));
@@ -6255,16 +6263,22 @@ namespace sw
 
 	RValue<Float4> Frac(RValue<Float4> x)
 	{
+		Float4 frc;
+
 		if(CPUID::supportsSSE4_1())
 		{
-			return x - x86::floorps(x);
+			frc = x - x86::floorps(x);
 		}
 		else
 		{
-			Float4 frc = x - Float4(Int4(x));   // Signed fractional part
+			frc = x - Float4(Int4(x));   // Signed fractional part.
 
-			return frc + As<Float4>(As<Int4>(CmpNLE(Float4(0.0f), frc)) & As<Int4>(Float4(1, 1, 1, 1)));
+			frc += As<Float4>(As<Int4>(CmpNLE(Float4(0.0f), frc)) & As<Int4>(Float4(1.0f)));   // Add 1.0 if negative.
 		}
+
+		// x - floor(x) can be 1.0 for very small negative x.
+		// Clamp against the value just below 1.0.
+		return Min(frc, As<Float4>(Int4(0x3F7FFFFF)));
 	}
 
 	RValue<Float4> Floor(RValue<Float4> x)
@@ -6370,12 +6384,10 @@ namespace sw
 		Nucleus::createUnreachable();
 	}
 
-	bool branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB)
+	void branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB)
 	{
 		Nucleus::createCondBr(cmp.value, bodyBB, endBB);
 		Nucleus::setInsertBlock(bodyBB);
-
-		return true;
 	}
 
 	RValue<Long> Ticks()

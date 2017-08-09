@@ -113,12 +113,21 @@ COMMON_CFLAGS := \
 	-D__STDC_CONSTANT_MACROS \
 	-D__STDC_LIMIT_MACROS \
 	-DANDROID_PLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION) \
-	-std=c++11
+	-std=c++11 \
+	-DNO_SANITIZE_FUNCTION=
 
 ifneq (16,${PLATFORM_SDK_VERSION})
 COMMON_CFLAGS += -Xclang -fuse-init-array
 else
 COMMON_CFLAGS += -D__STDC_INT64__
+endif
+
+# gralloc1 is introduced from N MR1
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 25 && echo NMR1),NMR1)
+COMMON_CFLAGS += -DHAVE_GRALLOC1
+COMMON_C_INCLUDES += \
+	system/core/libsync/include \
+	system/core/libsync
 endif
 
 # Common Subzero defines

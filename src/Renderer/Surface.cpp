@@ -41,7 +41,6 @@ namespace sw
 
 	unsigned int *Surface::palette = 0;
 	unsigned int Surface::paletteID = 0;
-	void Surface::typeinfo() {}
 
 	void Rect::clip(int minX, int minY, int maxX, int maxY)
 	{
@@ -1168,6 +1167,36 @@ namespace sw
 		lock = LOCK_UNLOCKED;
 	}
 
+	class SurfaceImplementation : public Surface
+	{
+	public:
+		SurfaceImplementation(int width, int height, int depth, Format format, void *pixels, int pitch, int slice)
+			: Surface(width, height, depth, format, pixels, pitch, slice) {}
+		SurfaceImplementation(Resource *texture, int width, int height, int depth, Format format, bool lockable, bool renderTarget, int pitchP = 0)
+			: Surface(texture, width, height, depth, format, lockable, renderTarget, pitchP) {}
+		~SurfaceImplementation() override {};
+
+		void *lockInternal(int x, int y, int z, Lock lock, Accessor client) override
+		{
+			return Surface::lockInternal(x, y, z, lock, client);
+		}
+
+		void unlockInternal() override
+		{
+			Surface::unlockInternal();
+		}
+	};
+
+	Surface *Surface::create(int width, int height, int depth, Format format, void *pixels, int pitch, int slice)
+	{
+		return new SurfaceImplementation(width, height, depth, format, pixels, pitch, slice);
+	}
+
+	Surface *Surface::create(Resource *texture, int width, int height, int depth, Format format, bool lockable, bool renderTarget, int pitchPprovided)
+	{
+		return new SurfaceImplementation(texture, width, height, depth, format, lockable, renderTarget, pitchPprovided);
+	}
+
 	Surface::Surface(int width, int height, int depth, Format format, void *pixels, int pitch, int slice) : lockable(true), renderTarget(false)
 	{
 		resource = new Resource(0);
@@ -1270,9 +1299,9 @@ namespace sw
 
 	Surface::~Surface()
 	{
-		// Synchronize so we can deallocate the buffers below
-		resource->lock(DESTRUCT);
-		resource->unlock();
+		// sync() must be called before this destructor to ensure all locks have been released.
+		// We can't call it here because the parent resource may already have been destroyed.
+		ASSERT(isUnlocked());
 
 		if(!hasParent)
 		{
@@ -1340,9 +1369,9 @@ namespace sw
 
 	void Surface::unlockExternal()
 	{
-		resource->unlock();
-
 		external.unlockRect();
+
+		resource->unlock();
 	}
 
 	void *Surface::lockInternal(int x, int y, int z, Lock lock, Accessor client)
@@ -1424,9 +1453,9 @@ namespace sw
 
 	void Surface::unlockInternal()
 	{
-		resource->unlock();
-
 		internal.unlockRect();
+
+		resource->unlock();
 	}
 
 	void *Surface::lockStencil(int x, int y, int front, Accessor client)
@@ -1443,9 +1472,9 @@ namespace sw
 
 	void Surface::unlockStencil()
 	{
-		resource->unlock();
-
 		stencil.unlockRect();
+
+		resource->unlock();
 	}
 
 	int Surface::bytes(Format format)
@@ -2955,14 +2984,14 @@ namespace sw
 		case FORMAT_X8B8G8R8I:
 		case FORMAT_G8R8I:
 		case FORMAT_R8I:
-		case FORMAT_A8B8G8R8UI:
-		case FORMAT_X8B8G8R8UI:
-		case FORMAT_G8R8UI:
-		case FORMAT_R8UI:
 		case FORMAT_A16B16G16R16I:
 		case FORMAT_X16B16G16R16I:
 		case FORMAT_G16R16I:
 		case FORMAT_R16I:
+		case FORMAT_A32B32G32R32I:
+		case FORMAT_X32B32G32R32I:
+		case FORMAT_G32R32I:
+		case FORMAT_R32I:
 			return true;
 		default:
 			return false;
@@ -2973,14 +3002,14 @@ namespace sw
 	{
 		switch(format)
 		{
+		case FORMAT_A8B8G8R8UI:
+		case FORMAT_X8B8G8R8UI:
+		case FORMAT_G8R8UI:
+		case FORMAT_R8UI:
 		case FORMAT_A16B16G16R16UI:
 		case FORMAT_X16B16G16R16UI:
 		case FORMAT_G16R16UI:
 		case FORMAT_R16UI:
-		case FORMAT_A32B32G32R32I:
-		case FORMAT_X32B32G32R32I:
-		case FORMAT_G32R32I:
-		case FORMAT_R32I:
 		case FORMAT_A32B32G32R32UI:
 		case FORMAT_X32B32G32R32UI:
 		case FORMAT_G32R32UI:
@@ -3087,7 +3116,7 @@ namespace sw
 		// FIXME: Unpacking byte4 to short4 in the sampler currently involves reading 8 bytes,
 		// and stencil operations also read 8 bytes per four 8-bit stencil values,
 		// so we have to allocate 4 extra bytes to avoid buffer overruns.
-		return allocateZero(size(width2, height2, depth, format) + 4);
+		return allocate(size(width2, height2, depth, format) + 4);
 	}
 
 	void Surface::memfill4(void *buffer, int pattern, int bytes)
@@ -3158,14 +3187,20 @@ namespace sw
 		}
 	}
 
-	bool Surface::isEntire(const SliceRect& rect) const
+	void Surface::sync()
+	{
+		resource->lock(EXCLUSIVE);
+		resource->unlock();
+	}
+
+	bool Surface::isEntire(const Rect& rect) const
 	{
 		return (rect.x0 == 0 && rect.y0 == 0 && rect.x1 == internal.width && rect.y1 == internal.height && internal.depth == 1);
 	}
 
-	SliceRect Surface::getRect() const
+	Rect Surface::getRect() const
 	{
-		return SliceRect(0, 0, internal.width, internal.height, 0);
+		return Rect(0, 0, internal.width, internal.height);
 	}
 
 	void Surface::clearDepth(float depth, int x0, int y0, int width, int height)

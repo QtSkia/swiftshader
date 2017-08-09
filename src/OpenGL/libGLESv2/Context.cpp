@@ -35,7 +35,7 @@
 #include "VertexDataManager.h"
 #include "IndexDataManager.h"
 #include "libEGL/Display.h"
-#include "libEGL/EGLSurface.h"
+#include "common/Surface.hpp"
 #include "Common/Half.hpp"
 
 #include <EGL/eglext.h>
@@ -45,8 +45,8 @@
 
 namespace es2
 {
-Context::Context(egl::Display *display, const Context *shareContext, EGLint clientVersion)
-	: egl::Context(display), clientVersion(clientVersion)
+Context::Context(egl::Display *display, const Context *shareContext, EGLint clientVersion, const egl::Config *config)
+	: egl::Context(display), clientVersion(clientVersion), config(config)
 {
 	sw::Context *context = new sw::Context();
 	device = new es2::Device(context);
@@ -100,6 +100,7 @@ Context::Context(egl::Display *display, const Context *shareContext, EGLint clie
 	mState.rasterizerDiscardEnabled = false;
 	mState.generateMipmapHint = GL_DONT_CARE;
 	mState.fragmentShaderDerivativeHint = GL_DONT_CARE;
+	mState.textureFilteringHint = GL_DONT_CARE;
 
 	mState.lineWidth = 1.0f;
 
@@ -245,6 +246,11 @@ Context::~Context()
 	mState.pixelPackBuffer = nullptr;
 	mState.pixelUnpackBuffer = nullptr;
 	mState.genericUniformBuffer = nullptr;
+
+	for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; i++) {
+		mState.uniformBuffers[i].set(nullptr, 0, 0);
+	}
+
 	mState.renderbuffer = nullptr;
 
 	for(int i = 0; i < MAX_COMBINED_TEXTURE_IMAGE_UNITS; ++i)
@@ -265,7 +271,7 @@ Context::~Context()
 	delete device;
 }
 
-void Context::makeCurrent(egl::Surface *surface)
+void Context::makeCurrent(gl::Surface *surface)
 {
 	if(!mHasBeenCurrent)
 	{
@@ -318,6 +324,11 @@ void Context::makeCurrent(egl::Surface *surface)
 EGLint Context::getClientVersion() const
 {
 	return clientVersion;
+}
+
+EGLint Context::getConfigID() const
+{
+	return config->mConfigID;
 }
 
 // This function will set all of the state-related dirty flags, so that all state is set during next pre-draw.
@@ -670,6 +681,11 @@ void Context::setFragmentShaderDerivativeHint(GLenum hint)
 	// TODO: Propagate the hint to shader translator so we can write
 	// ddx, ddx_coarse, or ddx_fine depending on the hint.
 	// Ignore for now. It is valid for implementations to ignore hint.
+}
+
+void Context::setTextureFilteringHint(GLenum hint)
+{
+	mState.textureFilteringHint = hint;
 }
 
 void Context::setViewportParams(GLint x, GLint y, GLsizei width, GLsizei height)
@@ -1880,6 +1896,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 	case GL_UNPACK_ALIGNMENT:                 *params = mState.unpackInfo.alignment;          return true;
 	case GL_GENERATE_MIPMAP_HINT:             *params = mState.generateMipmapHint;            return true;
 	case GL_FRAGMENT_SHADER_DERIVATIVE_HINT_OES: *params = mState.fragmentShaderDerivativeHint; return true;
+	case GL_TEXTURE_FILTERING_HINT_CHROMIUM:  *params = mState.textureFilteringHint;          return true;
 	case GL_ACTIVE_TEXTURE:                   *params = (mState.activeSampler + GL_TEXTURE0); return true;
 	case GL_STENCIL_FUNC:                     *params = mState.stencilFunc;                   return true;
 	case GL_STENCIL_REF:                      *params = mState.stencilRef;                    return true;
@@ -2415,6 +2432,7 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
 	case GL_UNPACK_ALIGNMENT:
 	case GL_GENERATE_MIPMAP_HINT:
 	case GL_FRAGMENT_SHADER_DERIVATIVE_HINT_OES:
+	case GL_TEXTURE_FILTERING_HINT_CHROMIUM:
 	case GL_RED_BITS:
 	case GL_GREEN_BITS:
 	case GL_BLUE_BITS:
@@ -2971,9 +2989,9 @@ void Context::applyShaders()
 		mAppliedProgramSerial = programObject->getSerial();
 	}
 
-	programObject->applyTransformFeedback(getTransformFeedback());
-	programObject->applyUniformBuffers(mState.uniformBuffers);
-	programObject->applyUniforms();
+	programObject->applyTransformFeedback(device, getTransformFeedback());
+	programObject->applyUniformBuffers(device, mState.uniformBuffers);
+	programObject->applyUniforms(device);
 }
 
 void Context::applyTextures()
@@ -3048,6 +3066,7 @@ void Context::applyTextures(sw::SamplerType samplerType)
 				device->setTextureFilter(samplerType, samplerIndex, es2sw::ConvertTextureFilter(minFilter, magFilter, maxAnisotropy));
 				device->setMipmapFilter(samplerType, samplerIndex, es2sw::ConvertMipMapFilter(minFilter));
 				device->setMaxAnisotropy(samplerType, samplerIndex, maxAnisotropy);
+				device->setHighPrecisionFiltering(samplerType, samplerIndex, mState.textureFilteringHint == GL_NICEST);
 
 				applyTexture(samplerType, samplerIndex, texture);
 			}
@@ -3243,10 +3262,11 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum
 	sw::Rect dstRect = { 0, 0, width, height };
 	rect.clip(0, 0, renderTarget->getWidth(), renderTarget->getHeight());
 
-	sw::Surface externalSurface(width, height, 1, egl::ConvertFormatType(format, type), pixels, outputPitch, outputPitch * outputHeight);
+	sw::Surface *externalSurface = sw::Surface::create(width, height, 1, egl::ConvertFormatType(format, type), pixels, outputPitch, outputPitch * outputHeight);
 	sw::SliceRect sliceRect(rect);
 	sw::SliceRect dstSliceRect(dstRect);
-	device->blit(renderTarget, sliceRect, &externalSurface, dstSliceRect, false);
+	device->blit(renderTarget, sliceRect, externalSurface, dstSliceRect, false);
+	delete externalSurface;
 
 	renderTarget->release();
 }
@@ -3309,7 +3329,7 @@ void Context::clearColorBuffer(GLint drawbuffer, void *value, sw::Format format)
 
 		if(colorbuffer)
 		{
-			sw::SliceRect clearRect = colorbuffer->getRect();
+			sw::Rect clearRect = colorbuffer->getRect();
 
 			if(mState.scissorTestEnabled)
 			{
@@ -3348,7 +3368,7 @@ void Context::clearDepthBuffer(const GLfloat value)
 		if(depthbuffer)
 		{
 			float depth = clamp01(value);
-			sw::SliceRect clearRect = depthbuffer->getRect();
+			sw::Rect clearRect = depthbuffer->getRect();
 
 			if(mState.scissorTestEnabled)
 			{
@@ -3372,7 +3392,7 @@ void Context::clearStencilBuffer(const GLint value)
 		if(stencilbuffer)
 		{
 			unsigned char stencil = value < 0 ? 0 : static_cast<unsigned char>(value & 0x000000FF);
-			sw::SliceRect clearRect = stencilbuffer->getRect();
+			sw::Rect clearRect = stencilbuffer->getRect();
 
 			if(mState.scissorTestEnabled)
 			{
@@ -3509,6 +3529,11 @@ void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
 			transformFeedback->addVertexOffset(primitiveCount * verticesPerPrimitive);
 		}
 	}
+}
+
+void Context::blit(sw::Surface *source, const sw::SliceRect &sRect, sw::Surface *dest, const sw::SliceRect &dRect)
+{
+	device->blit(source, sRect, dest, dRect, false);
 }
 
 void Context::finish()
@@ -4139,7 +4164,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 	}
 }
 
-void Context::bindTexImage(egl::Surface *surface)
+void Context::bindTexImage(gl::Surface *surface)
 {
 	es2::Texture2D *textureObject = getTexture2D();
 
@@ -4300,6 +4325,7 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 #endif
 		"GL_EXT_texture_filter_anisotropic",
 		"GL_EXT_texture_format_BGRA8888",
+		"GL_EXT_texture_rg",
 		"GL_ANGLE_framebuffer_blit",
 		"GL_ANGLE_framebuffer_multisample",
 		"GL_ANGLE_instanced_arrays",
@@ -4307,6 +4333,7 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 		"GL_ANGLE_texture_compression_dxt3",
 		"GL_ANGLE_texture_compression_dxt5",
 #endif
+		"GL_CHROMIUM_texture_filtering_hint",
 		"GL_NV_fence",
 		"GL_NV_framebuffer_blit",
 		"GL_NV_read_depth",
@@ -4343,6 +4370,14 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 			{
 				extensionsCat += std::string(extension) + " ";
 			}
+
+			if(clientVersion >= 3)
+			{
+				for(const char *extension : es3extensions)
+				{
+					extensionsCat += std::string(extension) + " ";
+				}
+			}
 		}
 
 		return (const GLubyte*)extensionsCat.c_str();
@@ -4365,8 +4400,8 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 
 }
 
-egl::Context *es2CreateContext(egl::Display *display, const egl::Context *shareContext, int clientVersion)
+NO_SANITIZE_FUNCTION egl::Context *es2CreateContext(egl::Display *display, const egl::Context *shareContext, int clientVersion, const egl::Config *config)
 {
 	ASSERT(!shareContext || shareContext->getClientVersion() == clientVersion);   // Should be checked by eglCreateContext
-	return new es2::Context(display, static_cast<const es2::Context*>(shareContext), clientVersion);
+	return new es2::Context(display, static_cast<const es2::Context*>(shareContext), clientVersion, config);
 }

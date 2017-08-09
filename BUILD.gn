@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/config/compiler/compiler.gni")
+
 config("swiftshader_config") {
   defines = [ "STRICT_CONFORMANCE" ]  # Disables OpenGL ES 3.0
 
@@ -28,6 +30,7 @@ config("swiftshader_config") {
       "_CRT_SECURE_NO_DEPRECATE",
       "NOMINMAX",
       "_WINDLL",
+      "NO_SANITIZE_FUNCTION=",
     ]
 
     if (is_debug) {
@@ -39,13 +42,14 @@ config("swiftshader_config") {
     cflags = [
       "-std=c++11",
       "-Wall",
-      "-fexceptions",
+      "-fno-exceptions",
       "-fno-operator-names",
     ]
 
     defines += [
       "__STDC_CONSTANT_MACROS",
       "__STDC_LIMIT_MACROS",
+      "NO_SANITIZE_FUNCTION=__attribute__((no_sanitize(\"function\")))",
     ]
 
     if (is_debug) {
@@ -59,7 +63,6 @@ config("swiftshader_config") {
         "-ffunction-sections",
         "-fdata-sections",
         "-fomit-frame-pointer",
-        "-O2",
         "-Os",
       ]
 
@@ -88,6 +91,12 @@ config("swiftshader_config") {
         "-Wl,--hash-style=both",
         "-Wl,--gc-sections",
       ]
+      # A bug in the gold linker prevents using ICF on 32-bit (crbug.com/729532)
+      if (use_gold && target_cpu == "x86") {
+        ldflags += [
+          "-Wl,--icf=none",
+        ]
+      }
     }
   }
 }

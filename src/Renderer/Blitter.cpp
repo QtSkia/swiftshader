@@ -20,8 +20,6 @@
 
 namespace sw
 {
-	Blitter blitter;
-
 	Blitter::Blitter()
 	{
 		blitCache = new RoutineCache<BlitState>(1024);
@@ -39,11 +37,12 @@ namespace sw
 			return;
 		}
 
-		sw::Surface color(1, 1, 1, format, pixel, sw::Surface::bytes(format), sw::Surface::bytes(format));
+		sw::Surface *color = sw::Surface::create(1, 1, 1, format, pixel, sw::Surface::bytes(format), sw::Surface::bytes(format));
 		Blitter::Options clearOptions = static_cast<sw::Blitter::Options>((rgbaMask & 0xF) | CLEAR_OPERATION);
 		SliceRect sRect(dRect);
 		sRect.slice = 0;
-		blit(&color, sRect, dest, dRect, clearOptions);
+		blit(color, sRect, dest, dRect, clearOptions);
+		delete color;
 	}
 
 	bool Blitter::fastClear(void* pixel, sw::Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask)
@@ -261,11 +260,11 @@ namespace sw
 			c.w = float(0xFFFF);
 			break;
 		case FORMAT_R32I:
-			c.x = Float(Int(*Pointer<Int>(element)));
+			c.x = Float(*Pointer<Int>(element));
 			c.w = float(0x7FFFFFFF);
 			break;
 		case FORMAT_R32UI:
-			c.x = Float(Int(*Pointer<UInt>(element)));
+			c.x = Float(*Pointer<UInt>(element));
 			c.w = float(0xFFFFFFFF);
 			break;
 		case FORMAT_A8R8G8B8:
@@ -360,13 +359,13 @@ namespace sw
 			c.w = float(0xFFFF);
 			break;
 		case FORMAT_G32R32I:
-			c.x = Float(Int(*Pointer<Int>(element + 0)));
-			c.y = Float(Int(*Pointer<Int>(element + 4)));
+			c.x = Float(*Pointer<Int>(element + 0));
+			c.y = Float(*Pointer<Int>(element + 4));
 			c.w = float(0x7FFFFFFF);
 			break;
 		case FORMAT_G32R32UI:
-			c.x = Float(Int(*Pointer<UInt>(element + 0)));
-			c.y = Float(Int(*Pointer<UInt>(element + 4)));
+			c.x = Float(*Pointer<UInt>(element + 0));
+			c.y = Float(*Pointer<UInt>(element + 4));
 			c.w = float(0xFFFFFFFF);
 			break;
 		case FORMAT_A32B32G32R32F:
@@ -836,24 +835,18 @@ namespace sw
 			c = Insert(c, Int(*Pointer<UShort>(element)), 0);
 			break;
 		case FORMAT_A32B32G32R32I:
+		case FORMAT_A32B32G32R32UI:
 			c = *Pointer<Int4>(element);
 			break;
 		case FORMAT_X32B32G32R32I:
+		case FORMAT_X32B32G32R32UI:
 			c = Insert(c, *Pointer<Int>(element + 8), 2);
 		case FORMAT_G32R32I:
+		case FORMAT_G32R32UI:
 			c = Insert(c, *Pointer<Int>(element + 4), 1);
 		case FORMAT_R32I:
-			c = Insert(c, *Pointer<Int>(element), 0);
-			break;
-		case FORMAT_A32B32G32R32UI:
-			c = *Pointer<UInt4>(element);
-			break;
-		case FORMAT_X32B32G32R32UI:
-			c = Insert(c, Int(*Pointer<UInt>(element + 8)), 2);
-		case FORMAT_G32R32UI:
-			c = Insert(c, Int(*Pointer<UInt>(element + 4)), 1);
 		case FORMAT_R32UI:
-			c = Insert(c, Int(*Pointer<UInt>(element)), 0);
+			c = Insert(c, *Pointer<Int>(element), 0);
 			break;
 		default:
 			return false;

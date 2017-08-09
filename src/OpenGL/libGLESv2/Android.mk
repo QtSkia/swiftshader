@@ -13,7 +13,9 @@ COMMON_CFLAGS := \
 	-Wno-unused-parameter \
 	-Wno-implicit-exception-spec-mismatch \
 	-Wno-overloaded-virtual \
-	-DANDROID_PLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
+	-Wno-unknown-attributes \
+	-DANDROID_PLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION) \
+	-DNO_SANITIZE_FUNCTION=
 
 ifneq (16,${PLATFORM_SDK_VERSION})
 COMMON_CFLAGS += -Xclang -fuse-init-array
@@ -63,6 +65,12 @@ COMMON_SHARED_LIBRARIES := \
 	liblog \
 	libcutils \
 	libhardware
+
+# gralloc1 is introduced from N MR1
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 25 && echo NMR1),NMR1)
+COMMON_CFLAGS += -DHAVE_GRALLOC1
+COMMON_SHARED_LIBRARIES += libsync
+endif
 
 # Marshmallow does not have stlport, but comes with libc++ by default
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23 && echo PreMarshmallow),PreMarshmallow)

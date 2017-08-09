@@ -18,6 +18,7 @@
 #include "Nucleus.hpp"
 #include "Routine.hpp"
 
+#include <assert.h>
 #include <cstddef>
 #include <cwchar>
 #undef Bool
@@ -1535,6 +1536,7 @@ namespace sw
 	{
 	public:
 		explicit Float(RValue<Int> cast);
+		explicit Float(RValue<UInt> cast);
 
 		Float() = default;
 		Float(float x);
@@ -2162,7 +2164,7 @@ namespace sw
 //	RValue<Array<T>> operator--(Array<T> &val, int);   // Post-decrement
 //	const Array<T> &operator--(Array<T> &val);   // Pre-decrement
 
-	bool branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB);
+	void branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB);
 
 	void Return();
 	void Return(RValue<Int> ret);
@@ -2305,6 +2307,8 @@ namespace sw
 	template<class T>
 	RValue<T>::RValue(Value *rvalue)
 	{
+		assert(Nucleus::createBitCast(rvalue, T::getType()) == rvalue);   // Run-time type should match T, so bitcast is no-op.
+
 		value = rvalue;
 	}
 
