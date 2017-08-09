@@ -1,9 +1,11 @@
 #include <stdio.h>
+#include <assert.h>
 #include "Instance.h"
 #include "utils.h"
 #include "CommandAllocator.h"
-#include <assert.h>
-#include <windows.h>
+#include "Device.hpp"
+#include "Renderer/Context.hpp"
+
 
 namespace vulkan
 {
@@ -28,7 +30,7 @@ namespace vulkan
 			return VK_SUCCESS;
 		}
 
-		*pPropertyCount = min(*pPropertyCount, globalExtSize);
+		*pPropertyCount = MIN(*pPropertyCount, globalExtSize);
 		memcpy(pProperties, global_ext, *pPropertyCount);
 
 		if (*pPropertyCount < globalExtSize)
@@ -375,7 +377,7 @@ namespace vulkan
 			return VK_SUCCESS;
 		}
 
-		*pPropertyCount = min(*pPropertyCount, deviceExtSize);
+		*pPropertyCount = MIN(*pPropertyCount, deviceExtSize);
 		memcpy(pProperties, device_extensions, *pPropertyCount);
 
 		if (*pPropertyCount < deviceExtSize)
@@ -1272,7 +1274,7 @@ namespace vulkan
 	{
 		GET_FROM_HANDLE(CommandBuffer, cmdBuf, commandBuffer);
 
-		//cmdBuf->cmdIterator = new backend::CommandIterator(std::move(*cmdBuf->cmdAllocator));
+		cmdBuf->cmdIterator = new backend::CommandIterator(std::move(*cmdBuf->cmdAllocator));
 
 		return VK_SUCCESS;
 	}
@@ -1322,6 +1324,11 @@ namespace vulkan
 		GET_FROM_HANDLE(Fence, myFence, fence);
 
 		assert(pSubmits->sType == VK_STRUCTURE_TYPE_SUBMIT_INFO);
+		assert(submitCount == 1);
+		assert(pSubmits->commandBufferCount == 1);
+
+		// Get our command buffer to get access to our iterator to iterate over the commands
+		GET_FROM_HANDLE(CommandBuffer, cmdBuf, *pSubmits->pCommandBuffers);
 
 		return VK_SUCCESS;
 	}

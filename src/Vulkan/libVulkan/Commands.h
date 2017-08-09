@@ -17,6 +17,7 @@
 
 #include "Instance.h"
 #include "RefCounted.h"
+#include "CommandAllocator.h"
 
 using namespace vulkan;
 
