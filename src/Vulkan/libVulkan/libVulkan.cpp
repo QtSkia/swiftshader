@@ -677,18 +677,14 @@ namespace vulkan
 
 		assert(size > 0);
 
-		uint64_t mapOffset = offset & ~4065ull;
-		assert(offset >= mapOffset);
-		uint64_t mapSize = (offset + size) - mapOffset;
-
 		// map memory
-		void *map = malloc(mapSize);
+		void *map = malloc(size);
 		// assign mapped memory
 		myMem->map = map;
 		// assign correct map size
-		myMem->size = mapSize;
+		myMem->size = size;
 
-		*ppData = &myMem->map + (offset - mapOffset);
+		*ppData = (unsigned char *)myMem->map + offset;
 		return VK_SUCCESS;
 	}
 
