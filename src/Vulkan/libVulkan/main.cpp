@@ -137,6 +137,7 @@ namespace vulkan
 	VkResult WaitForFences(VkDevice device, uint32_t fenceCount, const VkFence* pFences, VkBool32 waitAll, uint64_t timeout);
 	void DestroyFence(VkDevice device, VkFence fence, const VkAllocationCallbacks* pAllocator);
 	VkResult QueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence);
+	void DestroyDevice(VkDevice device, const VkAllocationCallbacks* pAllocator);
 }
 
 extern "C"
@@ -205,7 +206,7 @@ extern "C"
 
 	VKAPI_ATTR void VKAPI_CALL vkDestroyDevice(VkDevice device, const VkAllocationCallbacks* pAllocator)
 	{
-		UNIMPLEMENTED();
+		vulkan::DestroyDevice(device, pAllocator);
 	}
 
 	VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateInstanceExtensionProperties(const char* pLayerName, uint32_t* pPropertyCount, VkExtensionProperties* pProperties)

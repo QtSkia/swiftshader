@@ -1333,6 +1333,21 @@ namespace vulkan
 		return VK_SUCCESS;
 	}
 
+	void DestroyDevice(VkDevice device, const VkAllocationCallbacks * pAllocator)
+	{
+		GET_FROM_HANDLE(Device, myDevice, device);
+
+		if (pAllocator == NULL)
+		{
+			vkutils::Free(&myDevice->instance->alloc, myDevice);
+		}
+
+		else
+		{
+			pAllocator->pfnFree(nullptr, myDevice);
+		}
+	}
+
 	VkResult WaitForFences(VkDevice device, uint32_t fenceCount, const VkFence * pFences, VkBool32 waitAll, uint64_t timeout)
 	{
 		GET_FROM_HANDLE(Device, myDevice, device);
