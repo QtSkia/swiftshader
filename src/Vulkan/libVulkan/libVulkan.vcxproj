@@ -101,7 +101,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;VK_USE_PLATFORM_WIN32_KHR;PRINT_API_EXPORTS;NOMINMAX;_ITERATOR_DEBUG_LEVEL=2;WIN32;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;DEBUGGER_WAIT_DIALOG;VK_USE_PLATFORM_WIN32_KHR;PRINT_API_EXPORTS;NOMINMAX;_ITERATOR_DEBUG_LEVEL=2;WIN32;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -125,7 +125,7 @@ copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;VK_USE_PLATFORM_WIN32_KHR;PRINT_API_EXPORTS;NOMINMAX;_ITERATOR_DEBUG_LEVEL=2;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;DEBUGGER_WAIT_DIALOG;VK_USE_PLATFORM_WIN32_KHR;PRINT_API_EXPORTS;NOMINMAX;_ITERATOR_DEBUG_LEVEL=2;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
       <DisableSpecificWarnings>5030;</DisableSpecificWarnings>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -230,6 +230,7 @@ copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
     <ClInclude Include="Queue.h" />
     <ClInclude Include="RefCounted.h" />
     <ClInclude Include="RenderPass.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
@@ -239,6 +240,9 @@ copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
     <ProjectReference Include="..\..\SwiftShader\SwiftShader.vcxproj">
       <Project>{7b02cb19-4cdf-4f79-bc9b-7f3f6164a003}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
