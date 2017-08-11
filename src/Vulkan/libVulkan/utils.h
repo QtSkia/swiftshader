@@ -37,6 +37,9 @@ namespace vulkan
       return (__VkType)(uintptr_t) _obj;                                   \
    }
 
+#define GET_UNTYPED_FROM_HANDLE(__name, __handle) \
+    void* __name = (void*)(uintptr_t) __handle;
+
 #define GET_FROM_HANDLE(__type, __name, __handle) \
    struct __type *__name = __type ## _from_handle(__handle)
 
@@ -50,6 +53,7 @@ namespace vulkan
 		DEFINE_NONDISP_HANDLE_CASTS(Sampler, VkSampler)
 		DEFINE_NONDISP_HANDLE_CASTS(ShaderModule, VkShaderModule)
 		DEFINE_NONDISP_HANDLE_CASTS(Buffer, VkBuffer)
+		DEFINE_NONDISP_HANDLE_CASTS(BufferView, VkBufferView)
 		DEFINE_NONDISP_HANDLE_CASTS(DeviceMemory, VkDeviceMemory)
 		DEFINE_NONDISP_HANDLE_CASTS(Image, VkImage)
 		DEFINE_NONDISP_HANDLE_CASTS(RenderPass, VkRenderPass)
@@ -59,6 +63,7 @@ namespace vulkan
 		DEFINE_NONDISP_HANDLE_CASTS(Framebuffer, VkFramebuffer)
 		DEFINE_NONDISP_HANDLE_CASTS(CommandPool, VkCommandPool)
 		DEFINE_NONDISP_HANDLE_CASTS(Fence, VkFence)
+		DEFINE_NONDISP_HANDLE_CASTS(Semaphore, VkSemaphore)
 }
 
 

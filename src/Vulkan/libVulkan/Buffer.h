@@ -62,5 +62,11 @@ namespace vulkan
 	{
 		bool submitted;
 	};
+
+	struct Semaphore
+	{
+		VkStructureType sType;
+		VkSemaphoreCreateFlags flags;
+	};
 }
 #endif

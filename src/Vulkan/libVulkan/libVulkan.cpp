@@ -9,8 +9,53 @@
 
 namespace vulkan
 {
+	struct BufferView // Implementation specific
+	{
+		const VkBufferViewCreateInfo* createInfo;
+	};
+
 	constexpr uint32_t globalExtSize = sizeof(global_ext) / sizeof(global_ext[0]);
 	constexpr uint32_t deviceExtSize = sizeof(device_extensions) / sizeof(device_extensions[0]);
+
+	template <typename T>
+	T* AllocateObject(VkDevice device, const VkAllocationCallbacks* pAllocator)
+	{
+		GET_FROM_HANDLE(Device, myDevice, device);
+
+		T* object = nullptr;
+
+		if(pAllocator == NULL)
+		{
+			object = new (vkutils::Alloc(&myDevice->alloc, pAllocator, sizeof(T), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) T;
+		}
+		else
+		{
+			object = new (pAllocator->pfnAllocation(myDevice, sizeof(T), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) T;
+		}
+
+		return object;
+	}
+
+	template <typename T>
+	void DestroyObject(VkDevice device, T object, const VkAllocationCallbacks * pAllocator)
+	{
+		if(object == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
+		GET_FROM_HANDLE(Device, myDevice, device);
+		GET_UNTYPED_FROM_HANDLE(myObject, object);
+
+		if(pAllocator == NULL)
+		{
+			vkutils::Free(&myDevice->alloc, myObject);
+		}
+		else
+		{
+			pAllocator->pfnFree(myDevice, myObject);
+		}
+	}
 
 	PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* pName)
 	{
@@ -96,7 +141,7 @@ namespace vulkan
 		}
 		else
 		{
-			instance = reinterpret_cast<vulkan::Instance *>(pAllocator->pfnAllocation(instance, sizeof(*instance), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_INSTANCE));
+			instance = reinterpret_cast<vulkan::Instance *>(pAllocator->pfnAllocation(nullptr, sizeof(*instance), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_INSTANCE));
 		}
 
 		if (instance == NULL)
@@ -134,7 +179,6 @@ namespace vulkan
 		instance->physicalDeviceNum = 1;
 
 		*pInstance = Instance_to_handle(instance);
-
 
 		return VK_SUCCESS;
 	}
@@ -369,6 +413,13 @@ namespace vulkan
 		};
 	}
 
+	void GetPhysicalDeviceFormatProperties(VkPhysicalDevice physicalDevice, VkFormat format, VkFormatProperties* pFormatProperties)
+	{
+		pFormatProperties->linearTilingFeatures = 0; // Unsupported format
+		pFormatProperties->optimalTilingFeatures = 0; // Unsupported format
+		pFormatProperties->bufferFeatures = 0; // Unsupported format
+	}
+
 	VkResult EnumerateDeviceExtensionProperties(VkPhysicalDevice physicalDevice, const char * pLayerName, uint32_t * pPropertyCount, VkExtensionProperties * pProperties)
 	{
 		if (pProperties == NULL)
@@ -392,7 +443,7 @@ namespace vulkan
 	VkResult CreateDevice(VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkDevice * pDevice)
 	{
 		GET_FROM_HANDLE(PhysicalDevice, physDevice, physicalDevice);
-		struct Device *device;
+		struct Device *device = nullptr;
 
 		assert(pCreateInfo->sType == VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
 
@@ -426,7 +477,7 @@ namespace vulkan
 		}
 		else
 		{
-			device = reinterpret_cast<Device *>(pAllocator->pfnAllocation(device, sizeof(*device), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_DEVICE));
+			device = reinterpret_cast<Device *>(pAllocator->pfnAllocation(physDevice, sizeof(*device), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_DEVICE));
 		}
 
 		if (device == NULL)
@@ -461,20 +512,9 @@ namespace vulkan
 
 	VkResult CreateSampler(VkDevice device, const VkSamplerCreateInfo * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkSampler * pSampler)
 	{
-		GET_FROM_HANDLE(Device, myDevice, device);
-
-		Sampler *sampler = nullptr;
-
 		assert(pCreateInfo->sType == VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO);
 
-		if (pAllocator == NULL)
-		{
-			sampler = reinterpret_cast<Sampler *>(vkutils::Alloc(&myDevice->alloc, pAllocator, sizeof(*sampler), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT));
-		}
-		else
-		{
-			sampler = reinterpret_cast<Sampler *>(pAllocator->pfnAllocation(sampler, sizeof(*sampler), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT));
-		}
+		Sampler *sampler = AllocateObject<Sampler>(device, pAllocator);
 
 		if (sampler == NULL)
 		{
@@ -488,37 +528,15 @@ namespace vulkan
 
 	void DestroySampler(VkDevice device, VkSampler sampler, const VkAllocationCallbacks * pAllocator)
 	{
-		assert(sampler != NULL);
-
-		GET_FROM_HANDLE(Device, myDevice, device);
-		GET_FROM_HANDLE(Sampler, mySampler, sampler);
-
-		if (pAllocator == NULL)
-		{
-			vkutils::Free(&myDevice->alloc, mySampler);
-		}
-		else
-		{
-			pAllocator->pfnFree(device, mySampler);
-		}
+		DestroyObject(device, sampler, pAllocator);
 	}
 
 	VkResult CreateShaderModule(VkDevice device, const VkShaderModuleCreateInfo * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkShaderModule * pShaderModule)
 	{
-		GET_FROM_HANDLE(Device, myDevice, device);
 		assert(pCreateInfo->sType == VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
 		assert(pCreateInfo->flags == 0);
 
-		ShaderModule *module = nullptr;
-
-		if (pAllocator == NULL)
-		{
-			module = new (vkutils::Alloc(&myDevice->alloc, pAllocator, sizeof(*module), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) ShaderModule;
-		}
-		else
-		{
-			module = new (pAllocator->pfnAllocation(myDevice, sizeof(*module) + pCreateInfo->codeSize, ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) ShaderModule;
-		}
+		ShaderModule *module = AllocateObject<ShaderModule>(device, pAllocator);
 
 		if (module == NULL)
 		{
@@ -535,19 +553,7 @@ namespace vulkan
 
 	void DestroyShaderModule(VkDevice device, VkShaderModule shaderModule, const VkAllocationCallbacks * pAllocator)
 	{
-		assert(shaderModule != NULL);
-
-		GET_FROM_HANDLE(Device, myDevice, device);
-		GET_FROM_HANDLE(ShaderModule, myShaderModule, shaderModule);
-
-		if (pAllocator == NULL)
-		{
-			vkutils::Free(&myDevice->alloc, myShaderModule);
-		}
-		else
-		{
-			pAllocator->pfnFree(nullptr, myShaderModule);
-		}
+		DestroyObject(device, shaderModule, pAllocator);
 	}
 
 	void GetDeviceQueue(VkDevice device, uint32_t queueFamilyIndex, uint32_t queueIndex, VkQueue * pQueue)
@@ -564,16 +570,7 @@ namespace vulkan
 
 		GET_FROM_HANDLE(Device, myDevice, device);
 
-		Buffer *buffer = nullptr;
-
-		if (pAllocator == NULL)
-		{
-			buffer = new (vkutils::Alloc(&myDevice->alloc, pAllocator, pCreateInfo->size, ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) Buffer;
-		}
-		else
-		{
-			buffer =  new (pAllocator->pfnAllocation(myDevice, pCreateInfo->size, ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) Buffer;
-		}
+		Buffer *buffer = AllocateObject<Buffer>(device, pAllocator);
 
 		if (buffer == NULL)
 		{
@@ -592,19 +589,23 @@ namespace vulkan
 
 	void DestroyBuffer(VkDevice device, VkBuffer buffer, const VkAllocationCallbacks * pAllocator)
 	{
-		assert(buffer != NULL);
+		DestroyObject(device, buffer, pAllocator);
+	}
 
-		GET_FROM_HANDLE(Device, myDevice, device);
-		GET_FROM_HANDLE(Buffer, myBuffer, buffer);
+	VkResult CreateBufferView(VkDevice device, const VkBufferViewCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkBufferView* pView)
+	{
+		BufferView* bufferView = AllocateObject<BufferView>(device, pAllocator);
 
-		if (pAllocator == NULL)
-		{
-			vkutils::Free(&myDevice->alloc, myBuffer);
-		}
-		else
-		{
-			pAllocator->pfnFree(nullptr, myBuffer);
-		}
+		bufferView->createInfo = pCreateInfo;
+
+		*pView = BufferView_to_handle(bufferView);
+
+		return VK_SUCCESS;
+	}
+
+	void DestroyBufferView(VkDevice device, VkBufferView bufferView, const VkAllocationCallbacks* pAllocator)
+	{
+		DestroyObject(device, bufferView, pAllocator);
 	}
 
 	void GetBufferMemoryRequirements(VkDevice device, VkBuffer buffer, VkMemoryRequirements * pMemoryRequirements)
@@ -634,21 +635,13 @@ namespace vulkan
 
 		GET_FROM_HANDLE(Device, myDevice, device);
 		PhysicalDevice *pPhysDevice = myDevice->instance->physicalDevice;
-		DeviceMemory *memory = nullptr;
 
 		if (pAllocateInfo->allocationSize > (1ull << 31))
 		{
 			return VK_ERROR_OUT_OF_DEVICE_MEMORY;
-		 }
+		}
 
-		if (pAllocator == NULL)
-		{
-			memory = new (vkutils::Alloc(&myDevice->alloc, pAllocator, sizeof(*memory), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) DeviceMemory;
-		}
-		else
-		{
-			memory = new (pAllocator->pfnAllocation(myDevice, sizeof(*memory), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) DeviceMemory;
-		}
+		DeviceMemory *memory = AllocateObject<DeviceMemory>(device, pAllocator);
 
 		if (memory == NULL)
 		{
@@ -706,9 +699,6 @@ namespace vulkan
 
 	VkResult CreateImage(VkDevice device, const VkImageCreateInfo * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkImage * pImage)
 	{
-		GET_FROM_HANDLE(Device, myDevice, device);
-		Image *image = nullptr;
-
 		assert(pCreateInfo->sType == VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO);
 		assert(pCreateInfo->mipLevels > 0);
 		assert(pCreateInfo->arrayLayers > 0);
@@ -717,14 +707,7 @@ namespace vulkan
 		assert(pCreateInfo->extent.height > 0);
 		assert(pCreateInfo->extent.depth > 0);
 
-		if (pAllocator == NULL)
-		{
-			image = new (vkutils::Alloc(&myDevice->alloc, pAllocator, sizeof(*image), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) Image;
-		}
-		else
-		{
-			image = new (pAllocator->pfnAllocation(nullptr, sizeof(*image), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) Image;
-		}
+		Image *image = AllocateObject<Image>(device, pAllocator);
 
 		if (image == NULL)
 		{
@@ -748,19 +731,7 @@ namespace vulkan
 
 	void DestroyImage(VkDevice device, VkImage image, const VkAllocationCallbacks * pAllocator)
 	{
-		assert(image != NULL);
-
-		GET_FROM_HANDLE(Device, myDevice, device);
-		GET_FROM_HANDLE(Image, myImage, image);
-
-		if (pAllocator == NULL)
-		{
-			vkutils::Free(&myDevice->alloc, myImage);
-		}
-		else
-		{
-			pAllocator->pfnFree(nullptr, myImage);
-		}
+		DestroyObject(device, image, pAllocator);
 	}
 
 	void GetImageMemoryRequirements(VkDevice device, VkImage image, VkMemoryRequirements * pMemoryRequirements)
@@ -790,6 +761,11 @@ namespace vulkan
 
 	void FreeMemory(VkDevice device, VkDeviceMemory memory, const VkAllocationCallbacks * pAllocator)
 	{
+		if(memory == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
 		GET_FROM_HANDLE(Device, myDevice, device);
 		GET_FROM_HANDLE(DeviceMemory, mem, memory);
 
@@ -828,20 +804,9 @@ namespace vulkan
 
 	VkResult CreateRenderPass(VkDevice device, const VkRenderPassCreateInfo * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkRenderPass * pRenderPass)
 	{
-		GET_FROM_HANDLE(Device, myDevice, device);
-
 		assert(pCreateInfo->sType == VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO);
-		RenderPass *pRender = nullptr;
 
-		if (pAllocator == NULL)
-		{
-			pRender = new (vkutils::Alloc(&myDevice->alloc, pAllocator, sizeof(*pRender), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) RenderPass;
-		}
-		else
-		{
-			pRender = new (pAllocator->pfnAllocation(myDevice, sizeof(*pRender), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) RenderPass;
-		}
-
+		RenderPass *pRender = AllocateObject<RenderPass>(device, pAllocator);
 
 		if (pRender == NULL)
 		{
@@ -861,10 +826,13 @@ namespace vulkan
 
 	void DestroyRenderPass(VkDevice device, VkRenderPass renderPass, const VkAllocationCallbacks * pAllocator)
 	{
+		if(renderPass == VK_NULL_HANDLE)
+		{
+			return;
+		}
+
 		GET_FROM_HANDLE(Device, myDevice, device);
 		GET_FROM_HANDLE(RenderPass, render, renderPass);
-
-		assert(renderPass != NULL);
 
 		if (pAllocator == NULL)
 		{
@@ -880,20 +848,11 @@ namespace vulkan
 
 	VkResult CreateImageView(VkDevice device, const VkImageViewCreateInfo * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkImageView * pView)
 	{
-		GET_FROM_HANDLE(Device, myDevice, device);
 		GET_FROM_HANDLE(Image, image, pCreateInfo->image);
 
-		ImageView *view = nullptr;
 		assert(pCreateInfo->sType == VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO);
 
-		if (pAllocator == NULL)
-		{
-			view = new (vkutils::Alloc(&myDevice->alloc, pAllocator, sizeof(*view), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) ImageView;
-		}
-		else
-		{
-			view = new (pAllocator->pfnAllocation(myDevice, sizeof(*view), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) ImageView;
-		}
+		ImageView *view = AllocateObject<ImageView>(device, pAllocator);
 
 		if (view == NULL)
 		{
@@ -910,35 +869,14 @@ namespace vulkan
 
 	void DestroyImageView(VkDevice device, VkImageView imageView, const VkAllocationCallbacks * pAllocator)
 	{
-		GET_FROM_HANDLE(Device, myDevice, device);
-		GET_FROM_HANDLE(ImageView, iView, imageView);
-
-		if (pAllocator == NULL)
-		{
-			vkutils::Free(&myDevice->alloc, iView);
-		}
-		else
-		{
-			pAllocator->pfnFree(myDevice, iView);
-		}
+		DestroyObject(device, imageView, pAllocator);
 	}
 
 	VkResult CreatePipelineLayout(VkDevice device, const VkPipelineLayoutCreateInfo * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkPipelineLayout * pPipelineLayout)
 	{
-		GET_FROM_HANDLE(Device, myDevice, device);
-
 		assert(pCreateInfo->sType == VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO);
 
-		PipelineLayout *pipelineLayout = nullptr;
-
-		if (pAllocator == NULL)
-		{
-			pipelineLayout = new (vkutils::Alloc(&myDevice->alloc, pAllocator, sizeof(*pipelineLayout), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) PipelineLayout;
-		}
-		else
-		{
-			pipelineLayout = new (pAllocator->pfnAllocation(myDevice, sizeof(*pipelineLayout), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) PipelineLayout;
-		}
+		PipelineLayout *pipelineLayout = AllocateObject<PipelineLayout>(device, pAllocator);
 
 		if (pipelineLayout == NULL)
 		{
@@ -954,19 +892,7 @@ namespace vulkan
 
 	void DestroyPipelineLayout(VkDevice device, VkPipelineLayout pipelineLayout, const VkAllocationCallbacks * pAllocator)
 	{
-		GET_FROM_HANDLE(Device, myDevice, device);
-		GET_FROM_HANDLE(PipelineLayout, pipe, pipelineLayout);
-
-		assert(pipelineLayout != NULL);
-
-		if (pAllocator == NULL)
-		{
-			vkutils::Free(&myDevice->alloc, pipe);
-		}
-		else
-		{
-			pAllocator->pfnFree(myDevice, pipe);
-		}
+		DestroyObject(device, pipelineLayout, pAllocator);
 	}
 
 	VkResult CreateGraphicsPipelines(VkDevice device, VkPipelineCache pipelineCache, uint32_t createInfoCount, const VkGraphicsPipelineCreateInfo * pCreateInfos, const VkAllocationCallbacks * pAllocator, VkPipeline * pPipelines)
@@ -977,16 +903,7 @@ namespace vulkan
 		assert(pipelineCache == NULL);
 		assert(pCreateInfos->sType == VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO);
 
-		Pipeline *pipeline = nullptr;
-
-		if (pAllocator == NULL)
-		{
-			pipeline = new (vkutils::Alloc(&myDevice->alloc, pAllocator, sizeof(*pipeline), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) Pipeline;
-		}
-		else
-		{
-			pipeline = new (pAllocator->pfnAllocation(myDevice, sizeof(*pipeline), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) Pipeline;
-		}
+		Pipeline *pipeline = AllocateObject<Pipeline>(device, pAllocator);
 
 		memset(pipeline, 0, sizeof(*pipeline));
 		pipeline->device = myDevice;
@@ -1011,35 +928,14 @@ namespace vulkan
 
 	void DestroyPipeline(VkDevice device, VkPipeline pipeline, const VkAllocationCallbacks * pAllocator)
 	{
-		GET_FROM_HANDLE(Device, myDevice, device);
-		GET_FROM_HANDLE(Pipeline, pipe, pipeline);
-
-		if (pAllocator == NULL)
-		{
-			vkutils::Free(&myDevice->alloc, pipe);
-		}
-		else
-		{
-			pAllocator->pfnFree(myDevice, pipe);
-		}
+		DestroyObject(device, pipeline, pAllocator);
 	}
 
 	VkResult CreateFramebuffer(VkDevice device, const VkFramebufferCreateInfo * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkFramebuffer * pFramebuffer)
 	{
-		GET_FROM_HANDLE(Device, myDevice, device);
-
 		assert(pCreateInfo->sType == VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO);
 
-		Framebuffer *framebuffer = nullptr;
-
-		if (pAllocator == NULL)
-		{
-			framebuffer = new (vkutils::Alloc(&myDevice->alloc, pAllocator, sizeof(*framebuffer), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) Framebuffer;
-		}
-		else
-		{
-			framebuffer = new (pAllocator->pfnAllocation(&myDevice, sizeof(*framebuffer), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) Framebuffer;
-		}
+		Framebuffer *framebuffer = AllocateObject<Framebuffer>(device, pAllocator);
 
 		if (framebuffer == NULL)
 		{
@@ -1060,17 +956,7 @@ namespace vulkan
 
 	void DestroyFramebuffer(VkDevice device, VkFramebuffer framebuffer, const VkAllocationCallbacks * pAllocator)
 	{
-		GET_FROM_HANDLE(Device, myDevice, device);
-		GET_FROM_HANDLE(Framebuffer, fBuf, framebuffer);
-
-		if (pAllocator == NULL)
-		{
-			vkutils::Free(&myDevice->alloc, fBuf);
-		}
-		else
-		{
-			pAllocator->pfnFree(myDevice, fBuf);
-		}
+		DestroyObject(device, framebuffer, pAllocator);
 	}
 
 	VkResult CreateCommandPool(VkDevice device, const VkCommandPoolCreateInfo * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkCommandPool * pCommandPool)
@@ -1079,16 +965,7 @@ namespace vulkan
 
 		assert(pCreateInfo->sType == VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO);
 
-		CommandPool *cmdPool = nullptr;
-
-		if (pAllocator == NULL)
-		{
-			cmdPool = new (vkutils::Alloc(&myDevice->alloc, pAllocator, sizeof(*cmdPool), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) CommandPool;
-		}
-		else
-		{
-			cmdPool = new (pAllocator->pfnAllocation(myDevice, sizeof(*cmdPool), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) CommandPool;
-		}
+		CommandPool *cmdPool = AllocateObject<CommandPool>(device, pAllocator);
 
 		if (cmdPool == NULL)
 		{
@@ -1113,17 +990,7 @@ namespace vulkan
 
 	void DestroyCommandPool(VkDevice device, VkCommandPool commandPool, const VkAllocationCallbacks * pAllocator)
 	{
-		GET_FROM_HANDLE(Device, myDevice, device);
-		GET_FROM_HANDLE(CommandPool, cmdPool, commandPool);
-
-		if (pAllocator == NULL)
-		{
-			vkutils::Free(&myDevice->alloc, cmdPool);
-		}
-		else
-		{
-			pAllocator->pfnFree(myDevice, cmdPool);
-		}
+		DestroyObject(device, commandPool, pAllocator);
 	}
 
 	VkResult AllocateCommandBuffers(VkDevice device, const VkCommandBufferAllocateInfo * pAllocateInfo, VkCommandBuffer * pCommandBuffers)
@@ -1134,7 +1001,7 @@ namespace vulkan
 		assert(pAllocateInfo->commandBufferCount > 0);
 		assert(pAllocateInfo->sType == VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
 
-		CommandBuffer *cmdBuf = new (vkutils::Allocate(&myDevice->alloc, sizeof(*cmdBuf), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) CommandBuffer;
+		CommandBuffer *cmdBuf = AllocateObject<CommandBuffer>(device, nullptr);
 
 		if (cmdBuf == NULL)
 		{
@@ -1292,26 +1159,34 @@ namespace vulkan
 
 	VkResult CreateFence(VkDevice device, const VkFenceCreateInfo * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkFence * pFence)
 	{
-		GET_FROM_HANDLE(Device, myDevice, device);
-
 		assert(pCreateInfo->sType == VK_STRUCTURE_TYPE_FENCE_CREATE_INFO);
 
-		Fence *fence = nullptr;
-
-		if (pAllocator == NULL)
-		{
-			fence = new (vkutils::Alloc(&myDevice->alloc, pAllocator, sizeof(*fence), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) Fence;
-		}
-		else
-		{
-			fence = new (pAllocator->pfnAllocation(myDevice, sizeof(*fence), ALIGNMENT, VK_SYSTEM_ALLOCATION_SCOPE_OBJECT)) Fence;
-		}
+		Fence *fence = AllocateObject<Fence>(device, pAllocator);
 
 		fence->submitted = false;
 
 		*pFence = Fence_to_handle(fence);
 
 		return VK_SUCCESS;
+	}
+
+	VkResult CreateASemaphore(VkDevice device, const VkSemaphoreCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSemaphore* pSemaphore)
+	{
+		assert(pCreateInfo->sType == VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO);
+
+		Semaphore *semaphore = AllocateObject<Semaphore>(device, pAllocator);
+
+		semaphore->sType = pCreateInfo->sType;
+		semaphore->flags = pCreateInfo->flags;
+
+		*pSemaphore = Semaphore_to_handle(semaphore);
+
+		return VK_SUCCESS;
+	}
+
+	void DestroySemaphore(VkDevice device, VkSemaphore semaphore, const VkAllocationCallbacks* pAllocator)
+	{
+		DestroyObject(device, semaphore, pAllocator);
 	}
 
 	VkResult QueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo * pSubmits, VkFence fence)
@@ -1355,19 +1230,7 @@ namespace vulkan
 
 	void DestroyFence(VkDevice device, VkFence fence, const VkAllocationCallbacks * pAllocator)
 	{
-		GET_FROM_HANDLE(Device, myDevice, device);
-		GET_FROM_HANDLE(Fence, myFence, fence);
-
-		assert(fence != NULL);
-
-		if (pAllocator == NULL)
-		{
-			vkutils::Free(&myDevice->alloc, myFence);
-		}
-		else
-		{
-			pAllocator->pfnFree(myDevice, myFence);
-		}
+		DestroyObject(device, fence, pAllocator);
 	}
 
 	VkResult InvalidateMappedMemoryRanges(VkDevice device, uint32_t memoryRangeCount, const VkMappedMemoryRange * pMemoryRanges)
