@@ -72,7 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>$(ProjectName)</TargetName>
+    <TargetName>vulkan-1</TargetName>
     <IncludePath>$(SolutionDir)\include;$(IncludePath);$(SolutionDir)\src</IncludePath>
     <OutDir>$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
@@ -82,18 +82,21 @@
     <OutDir>$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
     <IncludePath>$(SolutionDir)\src;$(SolutionDir)\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <TargetName>vulkan-1</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
     <IncludePath>$(SolutionDir)\include;$(IncludePath);$(SolutionDir)\src</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
+    <TargetName>vulkan-1</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
     <IncludePath>$(SolutionDir)\include;$(IncludePath);$(SolutionDir)\src</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <TargetName>vulkan-1</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -114,9 +117,9 @@
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
+copy "$(OutDir)vulkan-1.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
 mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator"
-copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\libVulkan_translator.dll"</Command>
+copy "$(OutDir)vulkan-1.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\libVulkan_translator.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -137,9 +140,9 @@ copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
+copy "$(OutDir)vulkan-1.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
 mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator"
-copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\libVulkan_translator.dll"</Command>
+copy "$(OutDir)vulkan-1.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\libVulkan_translator.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -163,9 +166,9 @@ copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
+copy "$(OutDir)vulkan-1.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
 mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator"
-copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\libVulkan_translator.dll"</Command>
+copy "$(OutDir)vulkan-1.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\libVulkan_translator.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -191,9 +194,9 @@ copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
+copy "$(OutDir)vulkan-1.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
 mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator"
-copy "$(OutDir)libVulkan.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\libVulkan_translator.dll"</Command>
+copy "$(OutDir)vulkan-1.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\libVulkan_translator.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
