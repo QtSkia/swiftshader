@@ -28,18 +28,6 @@
 	#include <unistd.h>
 #endif
 
-#if defined(__ANDROID__) && defined(TAG_JIT_CODE_MEMORY)
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/prctl.h>
-
-// Defined in bionic/libc/private/bionic_prctl.h, but that's not available outside of bionic.
-#define ANDROID_PR_SET_VMA           0x53564d41   // 'SVMA'
-#define ANDROID_PR_SET_VMA_ANON_NAME 0
-#endif
-
 #include <memory.h>
 
 #undef allocate
@@ -120,25 +108,8 @@ void deallocate(void *memory)
 void *allocateExecutable(size_t bytes)
 {
 	size_t pageSize = memoryPageSize();
-	size_t roundedSize = (bytes + pageSize - 1) & ~(pageSize - 1);
-	void *memory = allocate(roundedSize, pageSize);
 
-	#if defined(__ANDROID__) && defined(TAG_JIT_CODE_MEMORY)
-		if(memory)
-		{
-			char *name = nullptr;
-			asprintf(&name, "ss_x_%p", memory);
-
-			if(prctl(ANDROID_PR_SET_VMA, ANDROID_PR_SET_VMA_ANON_NAME, memory, roundedSize, name) == -1)
-			{
-				ALOGE("prctl failed %p 0x%zx (%s)", memory, roundedSize, strerror(errno));
-				free(name);
-			}
-			// The kernel retains a reference to name, so don't free it.
-		}
-	#endif
-
-	return memory;
+	return allocate((bytes + pageSize - 1) & ~(pageSize - 1), pageSize);
 }
 
 void markExecutable(void *memory, size_t bytes)

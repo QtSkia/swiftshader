@@ -115,11 +115,6 @@ COMMON_CFLAGS := \
 	-DANDROID_PLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION) \
 	-std=c++11
 
-ifneq ($(filter gce gce% calypso, $(TARGET_DEVICE)),)
-COMMON_CFLAGS += \
-	-DTAG_JIT_CODE_MEMORY
-endif
-
 ifneq (16,${PLATFORM_SDK_VERSION})
 COMMON_CFLAGS += -Xclang -fuse-init-array
 else
