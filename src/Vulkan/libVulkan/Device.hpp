@@ -30,6 +30,11 @@ namespace vulkan
 		unsigned int height;
 		float minZ;
 		float maxZ;
+
+		Viewport() : x0(0), y0(0), width(0), height(0), minZ(0), maxZ(0) {}
+
+		Viewport(int xi, int yi, unsigned int width_, unsigned int height_, float minZ_, float maxZ_) :
+			x0(xi), y0(yi), width(width_), height(height_), minZ(minZ_), maxZ(maxZ_) {}
 	};
 
 	class SwDevice : public sw::Renderer
@@ -72,6 +77,7 @@ namespace vulkan
 		bool stretchRect(sw::Surface *sourceSurface, const sw::SliceRect *sourceRect, sw::Surface *destSurface, const sw::SliceRect *destRect, unsigned char flags);
 		bool stretchCube(sw::Surface *sourceSurface, sw::Surface *destSurface);
 		void finish();
+		void setup();
 
 	private:
 		sw::Context *const context;

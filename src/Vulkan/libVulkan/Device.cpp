@@ -868,4 +868,16 @@ namespace vulkan
 	{
 		synchronize();
 	}
+
+	void SwDevice::setup()
+	{
+		resetInputStreams(false);
+
+		setBaseMatrix(sw::Matrix(1, 0, 0, 0, 1, 0, 0, 0, 1));
+		setModelMatrix(sw::Matrix(1, 0, 0, 0, 1, 0, 0, 0, 1));
+		setViewMatrix(sw::Matrix(1, 0, 0, 0, 1, 0, 0, 0, 1));
+		setProjectionMatrix(sw::Matrix(1, 0, 0, 0, 1, 0, 0, 0, 1));
+
+		setCullMode(sw::CullMode::CULL_NONE);
+	}
 }

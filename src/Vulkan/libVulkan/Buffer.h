@@ -3,6 +3,7 @@
 #include "Instance.h"
 #include "Image.h"
 #include "CommandAllocator.h"
+#include "Common/Resource.hpp"
 
 namespace vulkan
 {
@@ -12,12 +13,14 @@ namespace vulkan
 		VkDeviceSize size;
 		VkBufferUsageFlags usage;
 		VkDeviceSize offset;
+		struct DeviceMemory *mem;
 	};
 
 	struct VertexBinding
 	{
 		Buffer buffer;
 		VkDeviceSize offset;
+		sw::Resource *resource;
 	};
 
 	struct Framebuffer

@@ -17,6 +17,7 @@ namespace vulkan
 		VkDeviceSize size;
 		uint32_t alignment;
 		VkDeviceSize offset;
+		struct DeviceMemory *mem;
 	};
 
 	struct ImageView

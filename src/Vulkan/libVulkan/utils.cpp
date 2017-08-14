@@ -44,5 +44,11 @@ namespace vkutils
 		pAlloc->pfnFree(pAlloc->pUserData, pData);
 	}
 
+	int formatSize(VkFormat format)
+	{
+		// TODO: Add support for more format types
+		return 4;
+	}
+
 }
 

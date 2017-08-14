@@ -5,6 +5,7 @@
 #include "CommandAllocator.h"
 #include "Device.hpp"
 #include "Renderer/Context.hpp"
+#include "Common/Resource.hpp"
 
 
 namespace vulkan
@@ -496,7 +497,11 @@ namespace vulkan
 			device->alloc = physDevice->instance->alloc;
 		}
 
+		device->context = new sw::Context();
+		device->swiftshaderDevice = new SwDevice(device->context);
 		device->queue.device = device;
+		device->surface = nullptr;
+
 		// TODO: Check for features and return VK_ERROR_FEATURE_NOT PRESENT if needed
 		*pDevice = Device_to_handle(device);
 
@@ -649,8 +654,8 @@ namespace vulkan
 		}
 
 		memory->type = pPhysDevice->memory.memoryTypes[pAllocateInfo->memoryTypeIndex];
-		memory->size = 0;
-		memory->map = 0;
+		memory->size = pAllocateInfo->allocationSize;
+		memory->map = malloc(pAllocateInfo->allocationSize);
 
 		*pMemory = DeviceMemory_to_handle(memory);
 
@@ -668,14 +673,7 @@ namespace vulkan
 			return VK_SUCCESS;
 		}
 
-		assert(size > 0);
-
-		// map memory
-		void *map = malloc(size);
-		// assign mapped memory
-		myMem->map = map;
-		// assign correct map size
-		myMem->size = size;
+		assert(size <= myMem->size - offset);
 
 		*ppData = (unsigned char *)myMem->map + offset;
 		return VK_SUCCESS;
@@ -694,6 +692,9 @@ namespace vulkan
 		{
 			myBuf->offset = 0;
 		}
+
+		myBuf->mem = devMem;
+
 		return VK_SUCCESS;
 	}
 
@@ -716,8 +717,8 @@ namespace vulkan
 
 		memset(image, 0, sizeof(*image));
 		image->imageType = pCreateInfo->imageType;
-		image->size = 16;
 		image->format = pCreateInfo->format;
+		image->size = pCreateInfo->extent.width * pCreateInfo->extent.height * vkutils::formatSize(image->format);
 		image->extent = pCreateInfo->extent;
 		image->levels = pCreateInfo->mipLevels;
 		image->arraySize = pCreateInfo->arrayLayers;
@@ -799,6 +800,9 @@ namespace vulkan
 		{
 			myImage->offset = 0;
 		}
+
+		myImage->mem = mem;
+
 		return VK_SUCCESS;
 	}
 
@@ -904,10 +908,19 @@ namespace vulkan
 		assert(pCreateInfos->sType == VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO);
 
 		Pipeline *pipeline = AllocateObject<Pipeline>(device, pAllocator);
+		myDevice->pipeline = pipeline;
 
 		memset(pipeline, 0, sizeof(*pipeline));
 		pipeline->device = myDevice;
 		pipeline->layout = PipelineLayout_from_handle(pCreateInfos->layout);
+		pipeline->layout->vertData.format = pCreateInfos->pVertexInputState->pVertexAttributeDescriptions->format;
+		pipeline->layout->vertData.stride = pCreateInfos->pVertexInputState->pVertexBindingDescriptions->stride;
+		pipeline->layout->viewportData.x = pCreateInfos->pViewportState->pViewports->x;
+		pipeline->layout->viewportData.y = pCreateInfos->pViewportState->pViewports->y;
+		pipeline->layout->viewportData.width = pCreateInfos->pViewportState->pViewports->width;
+		pipeline->layout->viewportData.height = pCreateInfos->pViewportState->pViewports->height;
+		pipeline->layout->viewportData.minDepth = pCreateInfos->pViewportState->pViewports->minDepth;
+		pipeline->layout->viewportData.maxDepth = pCreateInfos->pViewportState->pViewports->maxDepth;
 
 		VkPipelineShaderStageCreateInfo pStages[2];
 		struct ShaderModule *modules[2];
@@ -1201,12 +1214,115 @@ namespace vulkan
 		// Get our command buffer to get access to our iterator to iterate over the commands
 		GET_FROM_HANDLE(CommandBuffer, cmdBuf, *pSubmits->pCommandBuffers);
 
+		Device *device = myQueue->device;
+
+		cmdBuf->state.vertBind->resource = new sw::Resource(0);
+		sw::Resource *resource = cmdBuf->state.vertBind->resource;
+
+		device->swiftshaderDevice->setup();
+
+		backend::Command type;
+		while (cmdBuf->cmdIterator->NextCommandId(&type))
+		{
+			switch (type)
+			{
+
+			case backend::Command::BeginRenderPass:
+				{
+					backend::BeginRenderPassCmd* cmd = cmdBuf->cmdIterator->NextCommand<backend::BeginRenderPassCmd>();
+					const Image *image = cmd->framebuffer->attachments.image;
+					int width = image->extent.width;
+					int height = image->extent.height;
+					int depth = image->extent.depth;
+					int formatSize = vkutils::formatSize(image->format);
+
+					void *pixelBuf = image->mem->map;
+					device->surface = new sw::Surface(width, height, depth, sw::Format::FORMAT_A8B8G8R8, pixelBuf, width * formatSize, width * height * formatSize);
+					device->swiftshaderDevice->setRenderTarget(0, device->surface);
+
+					device->swiftshaderDevice->setViewport(Viewport(0, 0, width, height, 0, depth));
+
+					// TEST CODE
+					sw::SliceRect rect(0, 0, width, height, 0);
+					int color = 0xFFBF4020;
+
+					device->swiftshaderDevice->clear(&color, sw::Format::FORMAT_A8B8G8R8, device->surface, rect, 0xF);
+					// END TEST CODE
+				}
+			break;
+
+			case backend::Command::CopyImageBuffer:
+				{
+					backend::CopyImageToBufferCmd *cpy = cmdBuf->cmdIterator->NextCommand<backend::CopyImageToBufferCmd>();
+
+					device->surface->sync();
+					memcpy(cpy->dstBuffer->mem->map, cpy->srcImage->mem->map, cpy->srcImage->mem->size);
+				}
+			break;
+
+			case backend::Command::DrawArrays:
+				{
+					backend::DrawArraysCmd *draw = cmdBuf->cmdIterator->NextCommand<backend::DrawArraysCmd>();
+
+					device->swiftshaderDevice->drawPrimitive(sw::DrawType::DRAW_TRIANGLELIST, 1);
+
+					resource->destruct();
+				}
+			break;
+
+			case backend::Command::EndRenderPass:
+				{
+					backend::EndRenderPassCmd *endRender = cmdBuf->cmdIterator->NextCommand<backend::EndRenderPassCmd>();
+				}
+			break;
+
+			case backend::Command::SetPipeline:
+				{
+					backend::SetRenderPipelineCmd *setPipe = cmdBuf->cmdIterator->NextCommand<backend::SetRenderPipelineCmd>();
+				}
+			break;
+
+			case backend::Command::SetVertex:
+				{
+					backend::SetVertexBufferCmd *setVert = cmdBuf->cmdIterator->NextCommand<backend::SetVertexBufferCmd>();
+
+					const void *buffer = (char*)setVert->buffer->mem->map + setVert->offset;
+					float vertFormat = vkutils::formatSize(device->pipeline->layout->vertData.format);
+					int count = (setVert->buffer->size / vertFormat) / vertFormat;
+					int vertStride = device->pipeline->layout->vertData.stride;
+
+					device->swiftshaderDevice->setConstantColor(0, sw::Color<float>(1, 0, 1, 1));
+					device->swiftshaderDevice->setFirstArgument(0, sw::TextureStage::SOURCE_CONSTANT);
+					device->swiftshaderDevice->setStageOperation(0, sw::TextureStage::STAGE_SELECTARG1);
+					device->swiftshaderDevice->setFirstArgumentAlpha(0, sw::TextureStage::SOURCE_CONSTANT);
+					device->swiftshaderDevice->setStageOperationAlpha(0, sw::TextureStage::STAGE_SELECTARG1);
+
+					sw::Stream attribute(resource, buffer, vertStride);
+
+					attribute.type = sw::StreamType::STREAMTYPE_FLOAT;
+					attribute.count = vertFormat;
+					attribute.normalized = false;
+
+					int stream = 0;
+					device->swiftshaderDevice->setInputStream(stream, attribute);
+
+				}
+			break;
+			}
+		}
+
+		device->surface->sync();
+		delete device->surface;
+
 		return VK_SUCCESS;
 	}
 
 	void DestroyDevice(VkDevice device, const VkAllocationCallbacks * pAllocator)
 	{
 		GET_FROM_HANDLE(Device, myDevice, device);
+
+		delete myDevice->swiftshaderDevice;
+		delete myDevice->context;
 
 		if (pAllocator == NULL)
 		{
