@@ -63,6 +63,8 @@ else()
     endif()
 endif()
 
+set(CMAKE_MACOSX_RPATH ON)
+
 ###########################################################
 # Convenience macros
 ###########################################################
@@ -137,7 +139,7 @@ if(MSVC)
 else()
     set_cpp_flag("--std=c++11")
     set_cpp_flag("-Wall")
-    set_cpp_flag("-fexceptions")
+    set_cpp_flag("-fno-exceptions")
 
     # Don't allow symbols to be overridden by another module.
     # This enables libGLES_CM and libGLESv2 to statically link LLVM.
@@ -167,9 +169,8 @@ else()
     set_cpp_flag("-s" RELEASE)
 
     # For distribution it is more important to be slim than super optimized
-    # so even in Release we use only -O2
-    set_cpp_flag("-O2 -Os" RELEASE)
-    set_cpp_flag("-O2 -Os" RELWITHDEBINFO)
+    set_cpp_flag("-Os" RELEASE)
+    set_cpp_flag("-Os" RELWITHDEBINFO)
 
     set_cpp_flag("-DNDEBUG" RELEASE)
     set_cpp_flag("-DNDEBUG" RELWITHDEBINFO)
@@ -437,12 +438,6 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Support/raw_os_ostream.cpp
     ${LLVM_DIR}/lib/Support/raw_ostream.cpp
     ${LLVM_DIR}/lib/Support/system_error.cpp
-    ${LLVM_DIR}/lib/TableGen/Error.cpp
-    ${LLVM_DIR}/lib/TableGen/Main.cpp
-    ${LLVM_DIR}/lib/TableGen/Record.cpp
-    ${LLVM_DIR}/lib/TableGen/TGLexer.cpp
-    ${LLVM_DIR}/lib/TableGen/TGParser.cpp
-    ${LLVM_DIR}/lib/TableGen/TableGenBackend.cpp
     ${LLVM_DIR}/lib/Target/Mangler.cpp
     ${LLVM_DIR}/lib/Target/TargetData.cpp
     ${LLVM_DIR}/lib/Target/TargetELFWriterInfo.cpp
@@ -746,9 +741,6 @@ file(GLOB_RECURSE EGL_LIST
     ${OPENGL_DIR}/common/debug.h
     ${CMAKE_SOURCE_DIR}/include/*.h
 )
-# Key method definitions are only required to appease the gold linker,
-# and cause vtable linking issues with other linkers.
-list(REMOVE_ITEM EGL_LIST ${OPENGL_DIR}/libEGL/TypeInfo.cpp)
 
 file(GLOB_RECURSE GL32_LIST
     ${OPENGL_DIR}/libGL/*.cpp
@@ -771,9 +763,6 @@ file(GLOB_RECURSE GLES2_LIST
     ${CMAKE_SOURCE_DIR}/include/GLES2/*.h
     ${CMAKE_SOURCE_DIR}/include/GLES3/*.h
 )
-# Key method definitions are only required to appease the gold linker,
-# and cause vtable linking issues with other linkers.
-list(REMOVE_ITEM GLES2_LIST ${OPENGL_DIR}/libGLESv2/TypeInfo.cpp)
 
 file(GLOB_RECURSE GLES_CM_LIST
     ${OPENGL_DIR}/libGLES_CM/*.cpp

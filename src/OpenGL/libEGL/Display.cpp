@@ -19,7 +19,7 @@
 #include "Display.h"
 
 #include "main.h"
-#include "libEGL/EGLSurface.h"
+#include "libEGL/Surface.hpp"
 #include "libEGL/Context.hpp"
 #include "common/Image.hpp"
 #include "common/debug.h"
@@ -42,7 +42,18 @@
 
 namespace egl
 {
-void Display::typeinfo() {}
+
+class DisplayImplementation : public Display
+{
+public:
+	DisplayImplementation(EGLDisplay dpy, void *nativeDisplay) : Display(dpy, nativeDisplay) {}
+	~DisplayImplementation() override {}
+
+	Image *getSharedImage(EGLImageKHR name) override
+	{
+		return Display::getSharedImage(name);
+	}
+};
 
 Display *Display::get(EGLDisplay dpy)
 {
@@ -61,12 +72,12 @@ Display *Display::get(EGLDisplay dpy)
 		}
 	#endif
 
-	static Display display(nativeDisplay);
+	static DisplayImplementation display(dpy, nativeDisplay);
 
 	return &display;
 }
 
-Display::Display(void *nativeDisplay) : nativeDisplay(nativeDisplay)
+Display::Display(EGLDisplay eglDisplay, void *nativeDisplay) : eglDisplay(eglDisplay), nativeDisplay(nativeDisplay)
 {
 	mMinSwapInterval = 1;
 	mMaxSwapInterval = 1;
@@ -441,7 +452,7 @@ EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *sh
 	{
 		if(libGLES_CM)
 		{
-			context = libGLES_CM->es1CreateContext(this, shareContext);
+			context = libGLES_CM->es1CreateContext(this, shareContext, config);
 		}
 	}
 	else if((clientVersion == 2 && config->mRenderableType & EGL_OPENGL_ES2_BIT) ||
@@ -449,7 +460,7 @@ EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *sh
 	{
 		if(libGLESv2)
 		{
-			context = libGLESv2->es2CreateContext(this, shareContext, clientVersion);
+			context = libGLESv2->es2CreateContext(this, shareContext, clientVersion, config);
 		}
 	}
 	else
@@ -597,6 +608,11 @@ EGLint Display::getMinSwapInterval() const
 EGLint Display::getMaxSwapInterval() const
 {
 	return mMaxSwapInterval;
+}
+
+EGLDisplay Display::getEGLDisplay() const
+{
+	return eglDisplay;
 }
 
 void *Display::getNativeDisplay() const
