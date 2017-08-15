@@ -8,7 +8,11 @@ COMMON_CFLAGS := \
 	-Wno-unused-parameter \
 	-Wno-implicit-exception-spec-mismatch \
 	-Wno-overloaded-virtual \
-	-DANDROID_PLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
+	-Wno-attributes \
+	-Wno-unknown-attributes \
+	-Wno-unknown-warning-option \
+	-DANDROID_PLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION) \
+	-DNO_SANITIZE_FUNCTION=
 
 ifneq (16,${PLATFORM_SDK_VERSION})
 COMMON_CFLAGS += -Xclang -fuse-init-array

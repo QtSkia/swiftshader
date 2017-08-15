@@ -108,12 +108,16 @@ COMMON_CFLAGS := \
 	-Wno-implicit-exception-spec-mismatch \
 	-Wno-overloaded-virtual \
 	-Wno-non-virtual-dtor \
+	-Wno-attributes \
+	-Wno-unknown-attributes \
+	-Wno-unknown-warning-option \
 	-fno-operator-names \
 	-msse2 \
 	-D__STDC_CONSTANT_MACROS \
 	-D__STDC_LIMIT_MACROS \
 	-DANDROID_PLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION) \
-	-std=c++11
+	-std=c++11 \
+	-DNO_SANITIZE_FUNCTION=
 
 ifneq (16,${PLATFORM_SDK_VERSION})
 COMMON_CFLAGS += -Xclang -fuse-init-array

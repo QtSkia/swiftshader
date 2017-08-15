@@ -4247,6 +4247,9 @@ void Hint(GLenum target, GLenum mode)
 	case GL_FRAGMENT_SHADER_DERIVATIVE_HINT_OES:
 		if(context) context->setFragmentShaderDerivativeHint(mode);
 		break;
+	case GL_TEXTURE_FILTERING_HINT_CHROMIUM:
+		if(context) context->setTextureFilteringHint(mode);
+		break;
 	default:
 		return error(GL_INVALID_ENUM);
 	}
@@ -5970,7 +5973,7 @@ void ValidateProgram(GLuint program)
 			}
 		}
 
-		programObject->validate();
+		programObject->validate(context->getDevice());
 	}
 }
 
@@ -6143,6 +6146,7 @@ void VertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normal
 	case GL_UNSIGNED_SHORT:
 	case GL_FIXED:
 	case GL_FLOAT:
+	case GL_HALF_FLOAT_OES:   // GL_OES_vertex_half_float
 		break;
 	case GL_INT_2_10_10_10_REV:
 	case GL_UNSIGNED_INT_2_10_10_10_REV:
@@ -6852,7 +6856,7 @@ void DrawBuffersEXT(GLsizei n, const GLenum *bufs)
 
 }
 
-extern "C" __eglMustCastToProperFunctionPointerType es2GetProcAddress(const char *procname)
+extern "C" NO_SANITIZE_FUNCTION __eglMustCastToProperFunctionPointerType es2GetProcAddress(const char *procname)
 {
 	struct Extension
 	{
