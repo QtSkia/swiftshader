@@ -518,6 +518,12 @@ namespace
 		}
 	}
 
+	template <>
+	void SaveImageRow<RGB565>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
+	{
+		memcpy(dest, source + xoffset * 2, width * 2);
+	}
+
 	template<DataType dataType>
 	void TransferImageData(egl::Image::TransferType transfer, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, int inputPitch, int inputHeight, int destPitch, GLsizei destHeight, const void *input, void *output)
 	{
