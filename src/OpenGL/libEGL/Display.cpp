@@ -85,7 +85,8 @@ Display::Display(EGLDisplay eglDisplay, void *nativeDisplay) : eglDisplay(eglDis
 
 Display::~Display()
 {
-	terminate();
+    // TODO: Make emulator more robust when exiting
+	// terminate();
 
 	#if defined(__linux__) && !defined(__ANDROID__)
 		if(nativeDisplay && libX11->XCloseDisplay)
