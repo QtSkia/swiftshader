@@ -169,7 +169,7 @@ swiftshader_shared_library("swiftshader_libvulkan") {
     "../../third_party/marl:Marl",
     "../Device",
     "../Pipeline",
-    "../Reactor",
+    "../Reactor:swiftshader_reactor",
     "../System",
     "../WSI",
   ]
