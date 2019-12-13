@@ -191,7 +191,8 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 		MAX_BOUND_DESCRIPTOR_SETS, // maxBoundDescriptorSets
 		16, // maxPerStageDescriptorSamplers
 		14, // maxPerStageDescriptorUniformBuffers
-		16, // maxPerStageDescriptorStorageBuffers
+		// TEMP HACK: Force ANGLE to not try to use SwiftShader (with Subzero) to emulate ES 3.1 (max will be ES 3.0)
+		4 /*16*/, // maxPerStageDescriptorStorageBuffers
 		16, // maxPerStageDescriptorSampledImages
 		4, // maxPerStageDescriptorStorageImages
 		4, // maxPerStageDescriptorInputAttachments
